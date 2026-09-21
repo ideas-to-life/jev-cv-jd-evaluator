@@ -1,4 +1,6 @@
 export function getHtmlDashboard(): string {
+  const coffeeUrl = "https://buymeacoffee.com/alexandrefranco";
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -69,18 +71,18 @@ export function getHtmlDashboard(): string {
           </div>
         </div>
 
-        <!-- Controls: Tabs + Credits & Passcode -->
-        <div class="flex flex-wrap items-center gap-3">
+        <!-- Controls: Tabs + Credits + Buy Me a Coffee + Passcode -->
+        <div class="flex flex-wrap items-center gap-2.5">
           
           <!-- Navigation Tabs -->
           <div class="flex items-center bg-slate-950/80 p-1 rounded-xl border border-slate-800">
-            <button id="tab-btn-cv" type="button" class="tab-active px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
+            <button id="tab-btn-cv" type="button" class="tab-active px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               CV & Job Fit
             </button>
-            <button id="tab-btn-upwork" type="button" class="tab-inactive px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
+            <button id="tab-btn-upwork" type="button" class="tab-inactive px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
@@ -91,14 +93,20 @@ export function getHtmlDashboard(): string {
           <!-- Credit Badge -->
           <div id="credit-badge" class="px-3 py-1.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs font-mono flex items-center gap-1.5 text-slate-300">
             <span class="text-amber-400">🪙</span>
-            <span id="credit-text">Loading credits...</span>
+            <span id="credit-text">Loading...</span>
           </div>
 
           <!-- Passcode Action -->
           <button id="passcode-btn" type="button" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium transition text-slate-300 flex items-center gap-1.5 shadow-sm">
             <span>🔑</span>
-            <span id="passcode-label">VIP Passcode</span>
+            <span id="passcode-label">VIP Code</span>
           </button>
+
+          <!-- Buy Me a Coffee Action Button -->
+          <a href="${coffeeUrl}" target="_blank" rel="noopener noreferrer" class="px-3.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 font-semibold text-xs transition flex items-center gap-1.5 shadow-sm hover:scale-105 transform">
+            <span>☕</span>
+            <span>Buy Me a Coffee</span>
+          </a>
 
         </div>
       </div>
@@ -222,11 +230,16 @@ export function getHtmlDashboard(): string {
         </div>
 
         <!-- Error Banner -->
-        <div id="cv-error-banner" class="hidden p-4 rounded-xl bg-rose-950/60 border border-rose-800 text-rose-300 text-xs flex items-start gap-3">
-          <svg class="w-5 h-5 text-rose-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <div id="cv-error-message"></div>
+        <div id="cv-error-banner" class="hidden p-4 rounded-xl bg-rose-950/60 border border-rose-800 text-rose-300 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 text-rose-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div id="cv-error-message"></div>
+          </div>
+          <a href="${coffeeUrl}" target="_blank" rel="noopener noreferrer" class="self-start sm:self-auto px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-medium text-xs flex items-center gap-1.5 transition">
+            <span>☕</span> Support Hosting
+          </a>
         </div>
 
         <!-- Results Section -->
@@ -348,6 +361,22 @@ export function getHtmlDashboard(): string {
             <p id="cv-gap-description" class="text-xs text-slate-300 bg-slate-900/60 border border-slate-800 p-4 rounded-xl leading-relaxed"></p>
           </div>
 
+          <!-- Value-Moment Support Card -->
+          <div class="bg-gradient-to-r from-amber-950/40 via-slate-850 to-amber-950/40 border border-amber-500/30 rounded-2xl p-5 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3.5 text-left">
+              <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-xl flex-shrink-0">
+                ☕
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-amber-200 uppercase tracking-wider">Found this alignment assessment valuable?</h4>
+                <p class="text-xs text-slate-400 mt-0.5">If Jev helped you evaluate your CV or identify blind spots, consider buying Alexandre a coffee to support hosting & AI Neurons.</p>
+              </div>
+            </div>
+            <a href="${coffeeUrl}" target="_blank" rel="noopener noreferrer" class="flex-shrink-0 px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs shadow-lg shadow-amber-400/20 transition transform hover:-translate-y-0.5">
+              💛 Buy Alexandre a Coffee
+            </a>
+          </div>
+
           <!-- Raw JSON Accordion -->
           <details class="group bg-slate-800/40 border border-slate-800 rounded-2xl p-4 text-xs">
             <summary class="font-medium text-slate-400 cursor-pointer hover:text-slate-200 flex items-center justify-between">
@@ -456,11 +485,16 @@ export function getHtmlDashboard(): string {
         </div>
 
         <!-- Error Banner -->
-        <div id="upwork-error-banner" class="hidden p-4 rounded-xl bg-rose-950/60 border border-rose-800 text-rose-300 text-xs flex items-start gap-3">
-          <svg class="w-5 h-5 text-rose-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <div id="upwork-error-message"></div>
+        <div id="upwork-error-banner" class="hidden p-4 rounded-xl bg-rose-950/60 border border-rose-800 text-rose-300 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 text-rose-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div id="upwork-error-message"></div>
+          </div>
+          <a href="${coffeeUrl}" target="_blank" rel="noopener noreferrer" class="self-start sm:self-auto px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-medium text-xs flex items-center gap-1.5 transition">
+            <span>☕</span> Support Hosting
+          </a>
         </div>
 
         <!-- Results Section -->
@@ -624,6 +658,22 @@ export function getHtmlDashboard(): string {
             <p id="upwork-weak-description" class="text-xs text-slate-300 bg-slate-900/60 border border-slate-800 p-4 rounded-xl leading-relaxed"></p>
           </div>
 
+          <!-- Value-Moment Support Card -->
+          <div class="bg-gradient-to-r from-amber-950/40 via-slate-850 to-amber-950/40 border border-amber-500/30 rounded-2xl p-5 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3.5 text-left">
+              <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-xl flex-shrink-0">
+                ☕
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-amber-200 uppercase tracking-wider">Found this proposal feedback valuable?</h4>
+                <p class="text-xs text-slate-400 mt-0.5">If Jev helped you sharpen your hook, credibility, or CTA, consider buying Alexandre a coffee to support hosting & AI Neurons.</p>
+              </div>
+            </div>
+            <a href="${coffeeUrl}" target="_blank" rel="noopener noreferrer" class="flex-shrink-0 px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs shadow-lg shadow-amber-400/20 transition transform hover:-translate-y-0.5">
+              💛 Buy Alexandre a Coffee
+            </a>
+          </div>
+
           <!-- Raw JSON Accordion -->
           <details class="group bg-slate-800/40 border border-slate-800 rounded-2xl p-4 text-xs">
             <summary class="font-medium text-slate-400 cursor-pointer hover:text-slate-200 flex items-center justify-between">
@@ -647,8 +697,11 @@ export function getHtmlDashboard(): string {
     </main>
   </div>
 
-  <footer class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-xs text-slate-500 border-t border-slate-800/60 w-full">
-    Cloudflare Workers AI &bull; Model: <span class="font-mono text-slate-400">typesafe/jev</span> &bull; 10k Free Neurons/day
+  <footer class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-xs text-slate-500 border-t border-slate-800/60 w-full flex flex-col sm:flex-row items-center justify-between gap-3">
+    <div>Cloudflare Workers AI &bull; Model: <span class="font-mono text-slate-400">typesafe/jev</span> &bull; 10k Free Neurons/day</div>
+    <a href="${coffeeUrl}" target="_blank" rel="noopener noreferrer" class="text-amber-400 hover:text-amber-300 hover:underline flex items-center gap-1 font-medium">
+      <span>☕</span> Support on Buy Me a Coffee
+    </a>
   </footer>
 
   <!-- Client-Side App Logic -->
@@ -825,7 +878,7 @@ Enterprise Cloud & AI Solutions Architect\`
             passcodeLabel.textContent = '⭐ VIP Member';
           } else {
             creditText.textContent = \`\${data.remaining} / \${data.limit} daily\`;
-            passcodeLabel.textContent = '🔑 VIP Passcode';
+            passcodeLabel.textContent = '🔑 VIP Code';
           }
         }
       } catch (e) {
@@ -865,15 +918,15 @@ Enterprise Cloud & AI Solutions Architect\`
     const tabContentUpwork = document.getElementById('tab-content-upwork');
 
     tabBtnCv.addEventListener('click', () => {
-      tabBtnCv.className = 'tab-active px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5';
-      tabBtnUpwork.className = 'tab-inactive px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5';
+      tabBtnCv.className = 'tab-active px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5';
+      tabBtnUpwork.className = 'tab-inactive px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5';
       tabContentCv.classList.remove('hidden');
       tabContentUpwork.classList.add('hidden');
     });
 
     tabBtnUpwork.addEventListener('click', () => {
-      tabBtnUpwork.className = 'tab-active px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5';
-      tabBtnCv.className = 'tab-inactive px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5';
+      tabBtnUpwork.className = 'tab-active px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5';
+      tabBtnCv.className = 'tab-inactive px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5';
       tabContentUpwork.classList.remove('hidden');
       tabContentCv.classList.add('hidden');
     });

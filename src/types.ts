@@ -77,4 +77,5 @@ export interface Env {
   GLOBAL_DAILY_LIMIT?: string;
   VIP_PASSCODE?: string;
   ADMIN_KEY?: string;
+  BUY_ME_COFFEE_URL?: string;
 }
