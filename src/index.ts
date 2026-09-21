@@ -174,6 +174,124 @@ export default {
       return Response.json(response);
     }
 
+    // --- POST /upwork-proposal --- Upwork Job Post & Proposal Evaluator
+    if (url.pathname === "/upwork-proposal" && req.method === "POST") {
+      const body = await req.json<{ job_post: string; proposal: string }>();
+
+      if (!body.job_post?.trim() || !body.proposal?.trim()) {
+        return new Response(
+          JSON.stringify({ error: "Both 'job_post' and 'proposal' are required." }),
+          { status: 400, headers: { "Content-Type": "application/json" } }
+        );
+      }
+
+      const state = `UPWORK JOB POST:\n${body.job_post}\n\nSUBMITTED PROPOSAL DRAFT:\n${body.proposal}`;
+
+      const input: JevInput = {
+        state,
+        questions: {
+          hook_strength: {
+            type: "score",
+            instructions:
+              "How effectively do the opening 2-3 lines grab the client's attention and avoid generic pleasantries?",
+            criteria: [
+              "Poor hook: uses generic filler, pleasantries, or boilerplate introduction",
+              "Weak hook: mentions the project but does not stand out in the client's inbox snippet",
+              "Moderate hook: addresses the job topic with basic relevance",
+              "Strong hook: directly addresses the client's problem with sharp relevance",
+              "Exceptional hook: immediately hooks the client with high-impact insight or solution angle",
+            ],
+          },
+          problem_understanding: {
+            type: "score",
+            instructions:
+              "How well does the proposal demonstrate genuine understanding of the client's problem, constraints, and business goals?",
+            criteria: [
+              "Misunderstood: misses the client's core problem or proposes an irrelevant solution",
+              "Superficial: only repeats the client's words without showing deeper comprehension",
+              "Adequate: understands the basic technical scope and deliverables",
+              "Deep: clearly understands root challenges, architecture constraints, and business context",
+              "Mastery: anticipates edge cases and demonstrates authoritative domain mastery",
+            ],
+          },
+          technical_credibility: {
+            type: "score",
+            instructions:
+              "How effectively does the proposal provide proof of work, past case studies, metrics, or technical authority?",
+            criteria: [
+              "No proof: makes unsupported claims with zero evidence or portfolio references",
+              "Weak proof: generic claims with little concrete project context",
+              "Solid proof: cites relevant past projects, tech stacks, or tangible results",
+              "High credibility: cites highly relevant case studies, quantifiable impact, and deep stack mastery",
+              "Authoritative: undisputed expert proof directly mirroring the client's stack and problem",
+            ],
+          },
+          brevity_and_tone: {
+            type: "score",
+            instructions:
+              "How appropriate is the proposal's brevity, structure, readability, and confident peer-to-peer consulting tone?",
+            criteria: [
+              "Poor tone: unstructured wall of text, desperate, or overly academic/subordinate",
+              "Needs improvement: somewhat cluttered or hard to scan quickly",
+              "Good: structured with clear paragraphs/bullet points and professional tone",
+              "Strong: crisp, scannable, confident peer-to-peer consulting tone with zero fluff",
+              "Exceptional: perfectly paced, effortless to read, and immediately conveys executive poise",
+            ],
+          },
+          call_to_action: {
+            type: "score",
+            instructions:
+              "How effective is the closing call-to-action (CTA) in sparking a low-friction conversation or interview?",
+            criteria: [
+              "No CTA: ends abruptly or with passive statements like 'hope to hear from you'",
+              "Weak CTA: asks generic questions or demands immediate high-commitment calls",
+              "Clear CTA: includes a direct next step or question",
+              "Compelling CTA: asks an insightful question about the client's stack or timeline",
+              "Irresistible CTA: low-friction, high-value conversation starter that compels an immediate reply",
+            ],
+          },
+          scope_budget_fit: {
+            type: "score",
+            instructions:
+              "How well does the proposal address the client's budget expectations, timeline, and delivery scope?",
+            criteria: [
+              "Misaligned: ignores budget, timeline, or key delivery scope entirely",
+              "Questionable: vague on timelines or unrealistic regarding project scope",
+              "Reasonable: acknowledges timeline and scope with feasible expectations",
+              "Strong alignment: clearly articulates phased milestones, timeline feasibility, and value",
+              "Optimal alignment: perfectly calibrated delivery plan maximizing ROI for the client's budget",
+            ],
+          },
+          primary_weakness: {
+            type: "choice",
+            instructions:
+              "What is the single most significant weakness or bottleneck in this Upwork proposal?",
+            criteria: {
+              none: "No significant weakness identified; proposal is well-optimized",
+              generic_hook: "Opening lines are generic or waste the preview snippet on pleasantries",
+              lack_of_proof: "Lacks specific proof of work, past metrics, or relevant portfolio examples",
+              weak_cta: "Closing lacks a compelling question or low-friction conversation starter",
+              too_lengthy_unstructured: "Proposal is overly verbose, dense, or difficult to scan on mobile",
+              missed_key_requirement: "Missed an explicit requirement or question posed in the job post",
+              passive_tone: "Tone is too desperate, passive, or overly academic rather than peer-to-peer",
+            },
+          },
+          recommend_submission: {
+            type: "noul",
+            instructions:
+              "Based on overall proposal strength and competitiveness, is this proposal ready to submit to the client?",
+            criteria: {
+              true: "The proposal is competitive, persuasive, and ready to submit",
+              false: "The proposal needs revision before spending connects or submitting",
+            },
+          },
+        },
+      };
+
+      const response = (await env.AI.run("typesafe/jev", input)) as JevResponse;
+      return Response.json(response);
+    }
+
     return new Response("Not found", { status: 404 });
   },
 };

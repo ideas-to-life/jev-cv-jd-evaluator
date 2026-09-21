@@ -59,6 +59,17 @@ curl http://localhost:8787/cv-jd \
     "cv": "Your CV text here...",
     "jd": "Job description text here..."
   }'
+### POST /upwork-proposal - Upwork Job & Proposal Evaluator
+
+Evaluate your Upwork proposal against a client job post. Jev scores your draft across 6 proposal conversion dimensions, identifies the single biggest proposal flaw, and determines if it is ready to submit:
+
+```bash
+curl http://localhost:8787/upwork-proposal \
+  -H "Content-Type: application/json" \
+  -d '{
+    "job_post": "Looking for a Senior Cloudflare Workers architect...",
+    "proposal": "Hi, I can architect and deliver your Cloudflare Workers AI service..."
+  }'
 ```
 
 ### POST /classify - route a support request
