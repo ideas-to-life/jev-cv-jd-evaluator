@@ -57,8 +57,24 @@ export interface JevResponse {
   gatewayMetadata?: Record<string, unknown>;
 }
 
+export interface CreditStatus {
+  allowed: boolean;
+  tier: "public" | "vip" | "admin";
+  remaining: number;
+  limit: number;
+  resetsInHours: number;
+  globalRemaining: number;
+  error?: string;
+}
+
 export interface Env {
   AI: {
     run(model: string, input: JevInput): Promise<JevResponse>;
   };
+  USAGE_KV?: KVNamespace;
+  PUBLIC_DAILY_LIMIT?: string;
+  VIP_DAILY_LIMIT?: string;
+  GLOBAL_DAILY_LIMIT?: string;
+  VIP_PASSCODE?: string;
+  ADMIN_KEY?: string;
 }

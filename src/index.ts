@@ -1,5 +1,126 @@
-import { JevResponse, JevInput, Env } from "./types";
+import { JevResponse, JevInput, Env, CreditStatus } from "./types";
 import { getHtmlDashboard } from "./ui";
+
+// In-memory fallback map for local testing when KV is not attached
+const memoryUsageMap = new Map<string, number>();
+
+function getTodayUtcDate(): string {
+  return new Date().toISOString().split("T")[0];
+}
+
+function getResetsInHours(): number {
+  const now = new Date();
+  const nextUtcMidnight = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0));
+  return Math.max(1, Math.round((nextUtcMidnight.getTime() - now.getTime()) / (1000 * 60 * 60)));
+}
+
+async function getCount(key: string, env: Env): Promise<number> {
+  if (env.USAGE_KV) {
+    const val = await env.USAGE_KV.get(key);
+    return val ? parseInt(val, 10) : 0;
+  }
+  return memoryUsageMap.get(key) || 0;
+}
+
+async function incrementCount(key: string, env: Env): Promise<number> {
+  const current = await getCount(key, env);
+  const next = current + 1;
+  if (env.USAGE_KV) {
+    await env.USAGE_KV.put(key, String(next), { expirationTtl: 86400 });
+  } else {
+    memoryUsageMap.set(key, next);
+  }
+  return next;
+}
+
+async function getCreditStatus(req: Request, env: Env): Promise<CreditStatus> {
+  const today = getTodayUtcDate();
+  const resetsInHours = getResetsInHours();
+  const passcode = req.headers.get("x-passcode")?.trim() || "";
+  const authEmail = req.headers.get("cf-access-authenticated-user-email")?.trim();
+  const cfIp = req.headers.get("cf-connecting-ip")?.trim() || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "anonymous";
+
+  let tier: "public" | "vip" | "admin" = "public";
+  let limit = parseInt(env.PUBLIC_DAILY_LIMIT || "3", 10);
+
+  if (env.ADMIN_KEY && passcode === env.ADMIN_KEY) {
+    tier = "admin";
+    limit = 999999;
+  } else if (passcode && (passcode.toUpperCase() === (env.VIP_PASSCODE || "COURSE-VIP").toUpperCase())) {
+    tier = "vip";
+    limit = parseInt(env.VIP_DAILY_LIMIT || "15", 10);
+  }
+
+  const clientId = authEmail || (tier === "vip" || tier === "admin" ? `pass:${passcode}` : `ip:${cfIp}`);
+  const userKey = `user:${tier}:${clientId}:${today}`;
+  const globalKey = `global:${today}`;
+
+  const globalLimit = parseInt(env.GLOBAL_DAILY_LIMIT || "250", 10);
+  const globalCount = await getCount(globalKey, env);
+  const globalRemaining = Math.max(0, globalLimit - globalCount);
+
+  if (globalRemaining <= 0 && tier !== "admin") {
+    return {
+      allowed: false,
+      tier,
+      remaining: 0,
+      limit,
+      resetsInHours,
+      globalRemaining: 0,
+      error: `Today's community credit pool has been exhausted (${globalLimit}/${globalLimit} evaluations used). Resets at 00:00 UTC (~${resetsInHours}h).`,
+    };
+  }
+
+  const userCount = await getCount(userKey, env);
+  const remaining = Math.max(0, limit - userCount);
+
+  if (remaining <= 0 && tier !== "admin") {
+    const tierMsg = tier === "vip"
+      ? `VIP daily limit reached (${limit}/${limit} evaluations used). Resets at 00:00 UTC (~${resetsInHours}h).`
+      : `Daily limit reached (${limit}/${limit} evaluations used). Enter a VIP Passcode or check back tomorrow at 00:00 UTC (~${resetsInHours}h).`;
+    return {
+      allowed: false,
+      tier,
+      remaining: 0,
+      limit,
+      resetsInHours,
+      globalRemaining,
+      error: tierMsg,
+    };
+  }
+
+  return {
+    allowed: true,
+    tier,
+    remaining,
+    limit,
+    resetsInHours,
+    globalRemaining,
+  };
+}
+
+async function deductCredit(req: Request, env: Env): Promise<void> {
+  const today = getTodayUtcDate();
+  const passcode = req.headers.get("x-passcode")?.trim() || "";
+  const authEmail = req.headers.get("cf-access-authenticated-user-email")?.trim();
+  const cfIp = req.headers.get("cf-connecting-ip")?.trim() || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "anonymous";
+
+  let tier: "public" | "vip" | "admin" = "public";
+  if (env.ADMIN_KEY && passcode === env.ADMIN_KEY) {
+    tier = "admin";
+  } else if (passcode && (passcode.toUpperCase() === (env.VIP_PASSCODE || "COURSE-VIP").toUpperCase())) {
+    tier = "vip";
+  }
+
+  const clientId = authEmail || (tier === "vip" || tier === "admin" ? `pass:${passcode}` : `ip:${cfIp}`);
+  const userKey = `user:${tier}:${clientId}:${today}`;
+  const globalKey = `global:${today}`;
+
+  await incrementCount(globalKey, env);
+  if (tier !== "admin") {
+    await incrementCount(userKey, env);
+  }
+}
 
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
@@ -11,6 +132,12 @@ export default {
           "Content-Type": "text/html; charset=utf-8",
         },
       });
+    }
+
+    // --- GET /api/credits --- Check current credit status
+    if (url.pathname === "/api/credits" && req.method === "GET") {
+      const status = await getCreditStatus(req, env);
+      return Response.json(status);
     }
 
     // --- POST /classify ---
@@ -82,6 +209,14 @@ export default {
 
     // --- POST /cv-jd --- CV-to-Job-Description alignment evaluator
     if (url.pathname === "/cv-jd" && req.method === "POST") {
+      const creditStatus = await getCreditStatus(req, env);
+      if (!creditStatus.allowed) {
+        return Response.json(
+          { error: creditStatus.error, creditStatus },
+          { status: 429 }
+        );
+      }
+
       const body = await req.json<{ cv: string; jd: string }>();
 
       if (!body.cv?.trim() || !body.jd?.trim()) {
@@ -171,11 +306,20 @@ export default {
       };
 
       const response = (await env.AI.run("typesafe/jev", input)) as JevResponse;
+      await deductCredit(req, env);
       return Response.json(response);
     }
 
     // --- POST /upwork-proposal --- Upwork Job Post & Proposal Evaluator
     if (url.pathname === "/upwork-proposal" && req.method === "POST") {
+      const creditStatus = await getCreditStatus(req, env);
+      if (!creditStatus.allowed) {
+        return Response.json(
+          { error: creditStatus.error, creditStatus },
+          { status: 429 }
+        );
+      }
+
       const body = await req.json<{ job_post: string; proposal: string }>();
 
       if (!body.job_post?.trim() || !body.proposal?.trim()) {
@@ -289,6 +433,7 @@ export default {
       };
 
       const response = (await env.AI.run("typesafe/jev", input)) as JevResponse;
+      await deductCredit(req, env);
       return Response.json(response);
     }
 

@@ -53,7 +53,9 @@ export function getHtmlDashboard(): string {
   <div>
     <!-- Header -->
     <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        
+        <!-- Brand / Model info -->
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-emerald-500 flex items-center justify-center shadow-lg shadow-blue-500/20 font-bold text-white text-lg">
             Jev
@@ -66,24 +68,68 @@ export function getHtmlDashboard(): string {
             <p class="text-xs text-slate-400">Structured AI Evaluation for Career Projections & Proposals</p>
           </div>
         </div>
-        
-        <!-- Navigation Tabs -->
-        <div class="flex items-center bg-slate-950/80 p-1 rounded-xl border border-slate-800">
-          <button id="tab-btn-cv" type="button" class="tab-active px-4 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            CV & Job Description
+
+        <!-- Controls: Tabs + Credits & Passcode -->
+        <div class="flex flex-wrap items-center gap-3">
+          
+          <!-- Navigation Tabs -->
+          <div class="flex items-center bg-slate-950/80 p-1 rounded-xl border border-slate-800">
+            <button id="tab-btn-cv" type="button" class="tab-active px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              CV & Job Fit
+            </button>
+            <button id="tab-btn-upwork" type="button" class="tab-inactive px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              Upwork Proposals
+            </button>
+          </div>
+
+          <!-- Credit Badge -->
+          <div id="credit-badge" class="px-3 py-1.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs font-mono flex items-center gap-1.5 text-slate-300">
+            <span class="text-amber-400">🪙</span>
+            <span id="credit-text">Loading credits...</span>
+          </div>
+
+          <!-- Passcode Action -->
+          <button id="passcode-btn" type="button" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium transition text-slate-300 flex items-center gap-1.5 shadow-sm">
+            <span>🔑</span>
+            <span id="passcode-label">VIP Passcode</span>
           </button>
-          <button id="tab-btn-upwork" type="button" class="tab-inactive px-4 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            Upwork Proposal Evaluator
-          </button>
+
         </div>
       </div>
     </header>
+
+    <!-- Passcode Modal -->
+    <div id="passcode-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+      <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold">🔑</span>
+            <h3 class="text-sm font-bold text-white">Enter VIP / Course Passcode</h3>
+          </div>
+          <button id="close-modal-btn" class="text-slate-400 hover:text-white text-lg">&times;</button>
+        </div>
+        <p class="text-xs text-slate-400 leading-relaxed">
+          Course members and VIPs can enter their access code to unlock <strong class="text-emerald-400">15 daily evaluations</strong>. Public users receive 3 free evaluations per day.
+        </p>
+        <div>
+          <label for="passcode-input" class="block text-xs font-medium text-slate-300 mb-1.5">Passcode</label>
+          <input type="text" id="passcode-input" placeholder="e.g. COURSE-VIP" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white uppercase tracking-wider font-mono focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div class="flex items-center justify-between pt-2">
+          <button id="clear-passcode-btn" class="text-xs text-rose-400 hover:underline">Clear Passcode</button>
+          <div class="flex items-center gap-2">
+            <button id="cancel-modal-btn" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 transition">Cancel</button>
+            <button id="save-passcode-btn" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white transition shadow-lg shadow-blue-500/25">Save & Unlock</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Main Workspace -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -734,6 +780,84 @@ Enterprise Cloud & AI Solutions Architect\`
       passive_tone: "The tone reads like a job seeker asking for employment rather than an authoritative peer consultant proposing a high-ROI business solution."
     };
 
+    // Passcode & Credit Logic
+    function getStoredPasscode() {
+      return localStorage.getItem('jev_passcode') || '';
+    }
+
+    function setStoredPasscode(code) {
+      if (code) {
+        localStorage.setItem('jev_passcode', code);
+      } else {
+        localStorage.removeItem('jev_passcode');
+      }
+    }
+
+    function getApiHeaders() {
+      const headers = { 'Content-Type': 'application/json' };
+      const code = getStoredPasscode();
+      if (code) {
+        headers['X-Passcode'] = code;
+      }
+      return headers;
+    }
+
+    const creditText = document.getElementById('credit-text');
+    const passcodeLabel = document.getElementById('passcode-label');
+    const passcodeModal = document.getElementById('passcode-modal');
+    const passcodeBtn = document.getElementById('passcode-btn');
+    const passcodeInput = document.getElementById('passcode-input');
+    const savePasscodeBtn = document.getElementById('save-passcode-btn');
+    const clearPasscodeBtn = document.getElementById('clear-passcode-btn');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const cancelModalBtn = document.getElementById('cancel-modal-btn');
+
+    async function updateCreditBadge() {
+      try {
+        const res = await fetch('/api/credits', { headers: getApiHeaders() });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.tier === 'admin') {
+            creditText.textContent = 'Admin (Unlimited)';
+            passcodeLabel.textContent = '👑 Admin Active';
+          } else if (data.tier === 'vip') {
+            creditText.textContent = \`\${data.remaining} / \${data.limit} daily\`;
+            passcodeLabel.textContent = '⭐ VIP Member';
+          } else {
+            creditText.textContent = \`\${data.remaining} / \${data.limit} daily\`;
+            passcodeLabel.textContent = '🔑 VIP Passcode';
+          }
+        }
+      } catch (e) {
+        creditText.textContent = '3 daily';
+      }
+    }
+
+    passcodeBtn.addEventListener('click', () => {
+      passcodeInput.value = getStoredPasscode();
+      passcodeModal.classList.remove('hidden');
+    });
+
+    closeModalBtn.addEventListener('click', () => passcodeModal.classList.add('hidden'));
+    cancelModalBtn.addEventListener('click', () => passcodeModal.classList.add('hidden'));
+
+    savePasscodeBtn.addEventListener('click', async () => {
+      const code = passcodeInput.value.trim();
+      setStoredPasscode(code);
+      passcodeModal.classList.add('hidden');
+      await updateCreditBadge();
+    });
+
+    clearPasscodeBtn.addEventListener('click', async () => {
+      setStoredPasscode('');
+      passcodeInput.value = '';
+      passcodeModal.classList.add('hidden');
+      await updateCreditBadge();
+    });
+
+    // On Load: fetch credits
+    updateCreditBadge();
+
     // Tab Switching Logic
     const tabBtnCv = document.getElementById('tab-btn-cv');
     const tabBtnUpwork = document.getElementById('tab-btn-upwork');
@@ -741,15 +865,15 @@ Enterprise Cloud & AI Solutions Architect\`
     const tabContentUpwork = document.getElementById('tab-content-upwork');
 
     tabBtnCv.addEventListener('click', () => {
-      tabBtnCv.className = 'tab-active px-4 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-2';
-      tabBtnUpwork.className = 'tab-inactive px-4 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-2';
+      tabBtnCv.className = 'tab-active px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5';
+      tabBtnUpwork.className = 'tab-inactive px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5';
       tabContentCv.classList.remove('hidden');
       tabContentUpwork.classList.add('hidden');
     });
 
     tabBtnUpwork.addEventListener('click', () => {
-      tabBtnUpwork.className = 'tab-active px-4 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-2';
-      tabBtnCv.className = 'tab-inactive px-4 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-2';
+      tabBtnUpwork.className = 'tab-active px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5';
+      tabBtnCv.className = 'tab-inactive px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5';
       tabContentUpwork.classList.remove('hidden');
       tabContentCv.classList.add('hidden');
     });
@@ -892,19 +1016,24 @@ Enterprise Cloud & AI Solutions Architect\`
       try {
         const res = await fetch('/cv-jd', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getApiHeaders(),
           body: JSON.stringify({ jd, cv })
         });
 
-        if (!res.ok) throw new Error(await res.text() || \`HTTP \${res.status}\`);
+        if (!res.ok) {
+          const errData = await res.json().catch(() => null);
+          const errText = errData?.error || \`HTTP \${res.status}\`;
+          throw new Error(errText);
+        }
 
         const data = await res.json();
         const latencyMs = Math.round(performance.now() - startTime);
 
         renderCvResults(data, latencyMs);
+        await updateCreditBadge();
       } catch (err) {
         cvErrorBanner.classList.remove('hidden');
-        cvErrorMessage.textContent = 'Evaluation Error: ' + err.message;
+        cvErrorMessage.textContent = err.message;
       } finally {
         evaluateCvBtn.disabled = false;
         evaluateCvSpinner.classList.add('hidden');
@@ -1063,19 +1192,24 @@ Enterprise Cloud & AI Solutions Architect\`
       try {
         const res = await fetch('/upwork-proposal', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getApiHeaders(),
           body: JSON.stringify({ job_post, proposal })
         });
 
-        if (!res.ok) throw new Error(await res.text() || \`HTTP \${res.status}\`);
+        if (!res.ok) {
+          const errData = await res.json().catch(() => null);
+          const errText = errData?.error || \`HTTP \${res.status}\`;
+          throw new Error(errText);
+        }
 
         const data = await res.json();
         const latencyMs = Math.round(performance.now() - startTime);
 
         renderUpworkResults(data, latencyMs);
+        await updateCreditBadge();
       } catch (err) {
         upworkErrorBanner.classList.remove('hidden');
-        upworkErrorMessage.textContent = 'Evaluation Error: ' + err.message;
+        upworkErrorMessage.textContent = err.message;
       } finally {
         evaluateUpworkBtn.disabled = false;
         evaluateUpworkSpinner.classList.add('hidden');

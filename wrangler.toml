@@ -15,3 +15,10 @@ persist = true
 enabled = true
 head_sampling_rate = 1
 persist = true
+
+[vars]
+PUBLIC_DAILY_LIMIT = "3"
+VIP_DAILY_LIMIT = "15"
+GLOBAL_DAILY_LIMIT = "250"
+VIP_PASSCODE = "COURSE-VIP"
+

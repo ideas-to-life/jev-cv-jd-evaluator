@@ -34,11 +34,26 @@ To enable automated deployment in your GitHub repository, navigate to **Settings
 
 ---
 
-## Manual Deployment
+## Credit Limits & Passcode Tiers
 
-```bash
-npm run deploy
+To protect your Workers AI daily Neurons budget from runaway usage when sharing on LinkedIn or course communities, the Worker enforces automatic credit tracking:
+
+- **Public Tier (Default)**: 3 free evaluations per day per client IP.
+- **VIP / Course Students (`COURSE-VIP`)**: 15 evaluations per day (unlocked via the in-app `🔑 VIP Passcode` modal).
+- **Admin Tier**: Unlimited evaluations with secret `ADMIN_KEY`.
+- **Global Safety Cap**: Max 250 evaluations/day total across all users (resets at 00:00 UTC).
+
+### Configuring Limits in `wrangler.toml`
+
+```toml
+[vars]
+PUBLIC_DAILY_LIMIT = "3"
+VIP_DAILY_LIMIT = "15"
+GLOBAL_DAILY_LIMIT = "250"
+VIP_PASSCODE = "COURSE-VIP"
 ```
+
+*(Optional: Bind a Cloudflare KV namespace `USAGE_KV` via `npx wrangler kv namespace create USAGE_KV` for distributed persistent tracking across global edge locations).*
 
 ---
 
