@@ -31,16 +31,30 @@ export interface JevAnswer {
   confidence?: number;
   probabilities?: Record<string, number>;
   score?: number;
+  legend?: Record<string, string>;
+  noul?: number;
   answer?: boolean;
 }
 
-export interface JevResponse {
+export interface JevResult {
   model: string;
   answers: Record<string, JevAnswer>;
   usage: {
     input_tokens: number;
     output_tokens: number;
   };
+}
+
+export interface JevResponse {
+  state?: string;
+  result?: JevResult;
+  model?: string;
+  answers?: Record<string, JevAnswer>;
+  usage?: {
+    input_tokens: number;
+    output_tokens: number;
+  };
+  gatewayMetadata?: Record<string, unknown>;
 }
 
 export interface Env {

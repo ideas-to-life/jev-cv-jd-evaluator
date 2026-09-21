@@ -9,19 +9,43 @@ npm install
 npx wrangler types
 ```
 
-## Run locally
+## Run locally & Access the Web Dashboard
 
 ```bash
 npm run dev
 ```
 
-## Deploy
+Open **`http://localhost:8787/`** in your browser to use the interactive **CV & JD Evaluator Web Dashboard**:
+- 📂 Drag-and-drop or select **`.md`**, **`.txt`**, or **`.docx`** files for both Job Description and CV.
+- ⚡ 1-Click "Load Sample Cloud Role & CV" preset for instant testing.
+## Automated Deployment (CI/CD)
+
+The repository includes GitHub Actions workflows for continuous integration and automated deployment to **Cloudflare Workers**:
+
+- **PR Quality Gate ([`.github/workflows/ci.yml`](file:///.github/workflows/ci.yml))**: Automatically type-checks TypeScript and verifies builds on every Pull Request and commit.
+- **Production Deployment ([`.github/workflows/deploy.yml`](file:///.github/workflows/deploy.yml))**: Automatically deploys the Worker to Cloudflare on push to `main` (or via manual trigger).
+
+### Setting up GitHub Secrets
+
+To enable automated deployment in your GitHub repository, navigate to **Settings > Secrets and variables > Actions** and add:
+
+1. `CLOUDFLARE_API_TOKEN`: Create an API token in the [Cloudflare Dashboard](https://dash.cloudflare.com/profile/api-tokens) with the **Edit Cloudflare Workers** template (permissions: `Workers Scripts: Edit`, `Account Settings: Read`, `Workers AI: Read/Run`).
+2. `CLOUDFLARE_ACCOUNT_ID`: Found in your Cloudflare dashboard sidebar under **Workers & Pages > Overview** (right side panel) or via `npx wrangler whoami`.
+
+---
+
+## Manual Deployment
 
 ```bash
 npm run deploy
 ```
 
+---
+
 ## Endpoints
+
+### GET / or /dashboard - Web UI Dashboard
+Serves the embedded single-page application.
 
 ### POST /cv-jd - CV-to-Job-Description alignment evaluator
 

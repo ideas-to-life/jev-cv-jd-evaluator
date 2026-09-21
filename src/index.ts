@@ -1,14 +1,16 @@
-import { JevResponse, JevInput } from "./types";
+import { JevResponse, JevInput, Env } from "./types";
+import { getHtmlDashboard } from "./ui";
 
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url);
 
-    if (url.pathname === "/") {
-      return new Response(
-        "Jev evaluator Worker. Endpoints: POST /classify, /risk, /evaluate, /cv-jd",
-        { status: 200 }
-      );
+    if (url.pathname === "/" || url.pathname === "/dashboard") {
+      return new Response(getHtmlDashboard(), {
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+        },
+      });
     }
 
     // --- POST /classify ---
@@ -81,6 +83,13 @@ export default {
     // --- POST /cv-jd --- CV-to-Job-Description alignment evaluator
     if (url.pathname === "/cv-jd" && req.method === "POST") {
       const body = await req.json<{ cv: string; jd: string }>();
+
+      if (!body.cv?.trim() || !body.jd?.trim()) {
+        return new Response(
+          JSON.stringify({ error: "Both 'cv' and 'jd' are required." }),
+          { status: 400, headers: { "Content-Type": "application/json" } }
+        );
+      }
 
       const state = `JOB DESCRIPTION:\n${body.jd}\n\nCANDIDATE CV / RESUME:\n${body.cv}`;
 
