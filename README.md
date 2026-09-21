@@ -1,0 +1,72 @@
+# Jev Evaluator Worker
+
+A Cloudflare Worker that calls the **typesafe/jev** model (TypeSafe.ai) via the Workers AI binding.
+
+## Setup
+
+```bash
+npm install
+npx wrangler types
+```
+
+## Run locally
+
+```bash
+npm run dev
+```
+
+## Deploy
+
+```bash
+npm run deploy
+```
+
+## Endpoints
+
+### POST /cv-jd - CV-to-Job-Description alignment evaluator
+
+Send your CV and a job description. Jev scores alignment across 4 dimensions,
+identifies the biggest gap, and recommends whether to interview.
+
+```bash
+curl http://localhost:8787/cv-jd \
+  -H "Content-Type: application/json" \
+  -d '{
+    "cv": "Your CV text here...",
+    "jd": "Job description text here..."
+  }'
+```
+
+### POST /classify - route a support request
+
+curl http://localhost:8787/classify -H "Content-Type: application/json" -d '{"text": "I cannot log in after changing my password."}'
+
+### POST /risk - score account risk
+
+curl http://localhost:8787/risk -H "Content-Type: application/json" -d '{"account_age_days": 12, "recent_events": ["Five failed login attempts"], "account_verified": true}'
+
+### POST /evaluate - pass through arbitrary state + questions
+
+curl http://localhost:8787/evaluate -H "Content-Type: application/json" -d '{"state": "Some context", "questions": {}}'
+
+## CV-JD Evaluation Questions
+
+The /cv-jd endpoint asks Jev these questions in a single call:
+
+| Question | Type | What it measures |
+|---|---|---|
+| overall_alignment | score (1-5) | Overall profile fit |
+| skills_match | score (1-5) | Technical skills and tools |
+| experience_match | score (1-5) | Years and relevance of experience |
+| education_match | score (1-5) | Education and certifications |
+| biggest_gap | choice | The most significant gap area |
+| recommend_interview | noul | Should the candidate be interviewed? |
+
+## Free plan limits
+
+Workers AI on the Free plan includes 10,000 Neurons per day at no charge.
+
+## Docs
+
+- Jev model docs: https://developers.cloudflare.com/ai/models/typesafe/jev/
+- Workers AI pricing: https://developers.cloudflare.com/workers-ai/platform/pricing/
