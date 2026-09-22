@@ -18,9 +18,11 @@ npx wrangler types
 npm run dev
 ```
 
-Open **`http://localhost:8787/`** in your browser to use the interactive **CV & JD Evaluator Web Dashboard**:
-- 📂 Drag-and-drop or select **`.md`**, **`.txt`**, or **`.docx`** files for both Job Description and CV.
-- ⚡ 1-Click "Load Sample Cloud Role & CV" preset for instant testing.
+Open **`http://localhost:8787/`** in your browser to use the interactive **Jev AI Evaluator Suite Web Dashboard**:
+- **Tab 1: CV & Job Fit**: Drag-and-drop or select **`.md`**, **`.txt`**, or **`.docx`** files for both Job Description and CV.
+- **Tab 2: Upwork Proposals**: Evaluate job post alignment, hook strength, credibility, and submission readiness.
+- **Tab 3: 30-Day Freelancer Attack**: Drag-and-drop **`.xlsx`** workbooks (12-month tabs) or **`.csv`** sheets. Computes the trailing 30-day window ending at the current week, evaluates funnel conversion waterfalls against Datalumina course benchmarks, identifies primary bottlenecks, and checks 30-day guarantee trajectory.
+- ⚡ 1-Click sample presets across all 3 evaluators for instant testing.
 ## Automated Deployment (CI/CD)
 
 The repository includes GitHub Actions workflows for continuous integration and automated deployment to **Cloudflare Workers**:
@@ -41,10 +43,13 @@ To enable automated deployment in your GitHub repository, navigate to **Settings
 
 To protect your Workers AI daily Neurons budget from runaway usage when sharing on LinkedIn or course communities, the Worker enforces automatic credit tracking:
 
-- **Public Tier (Default)**: 3 free evaluations per day per client IP.
-- **VIP / Course Students (`COURSE-VIP`)**: 15 evaluations per day (unlocked via the in-app `🔑 VIP Passcode` modal).
+- **Public Tier (Default)**: 3 free evaluations per day per client IP (CV & Upwork Proposal evaluators).
+- **VIP / Course Students (`COURSE-VIP`)**: 15 evaluations per day (unlocked via the in-app `🔑 VIP Passcode` modal). Unlocks full access to the **30-Day Freelancer Attack Evaluator**.
 - **Admin Tier**: Unlimited evaluations with secret `ADMIN_KEY`.
 - **Global Safety Cap**: Max 250 evaluations/day total across all users (resets at 00:00 UTC).
+
+> [!NOTE]
+> The **30-Day Freelancer Attack Evaluator** is reserved exclusively for Datalumina course members and requires the `COURSE-VIP` passcode (or `ADMIN_KEY`) to run evaluations, while remaining visible for all visitors to explore the layout, sample datasets, and benchmark targets.
 
 ### Configuring Limits in `wrangler.toml`
 
@@ -89,6 +94,45 @@ curl http://localhost:8787/upwork-proposal \
     "proposal": "Hi, I can architect and deliver your Cloudflare Workers AI service..."
   }'
 ```
+
+### POST /30-day-attack - Datalumina 30-Day Freelancer Attack Evaluator
+
+Evaluate a freelancer student's daily, weekly, and overall performance across their 30-day attack launch campaign against Datalumina benchmark KPIs (50-150 outreach, 10-30% reply rate, 10-30% interview rate, 20-40% win rate).
+
+Supports 12-month workbooks (`.xlsx`) and `.csv` files. The 30-day attack period is dynamically calculated as the **trailing 30-day window up to the end of the current week** (`[End of Current Week - 30 days, End of Current Week]`):
+
+```bash
+curl http://localhost:8787/30-day-attack \
+  -H "Content-Type: application/json" \
+  -H "x-passcode: COURSE-VIP" \
+  -d '{
+    "proposals": [
+      {
+        "date": "2026-09-09",
+        "job": "AI Automation Architect",
+        "proposal": true,
+        "reply": true,
+        "interview": true,
+        "won": false
+      }
+    ],
+    "calls": [
+      {
+        "date": "2026-09-01",
+        "name": "Enterprise Client",
+        "callType": "Discovery",
+        "outcome": "Interview",
+        "whatWentWell": "Strong technical alignment"
+      }
+    ]
+  }'
+```
+
+The response includes:
+- `window`: Active 30-day attack dates (`startDate`, `endDate`, `referenceDate`).
+- `deterministicMetrics`: Funnel conversions (proposals, replies, interviews, won, rates), CRM call breakdown, 4 weekly cohorts, and daily cadence/velocity.
+- `jevEvaluation`: Qualitative Jev AI scoring (`pipeline_health`, `funnel_efficiency`, `attack_discipline`, `positioning_and_targeting`), `primary_bottleneck` classification, and `on_track_for_guarantee` binary decision.
+
 
 ### POST /classify - route a support request
 

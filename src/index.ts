@@ -1,4 +1,12 @@
-import { JevResponse, JevInput, Env, CreditStatus } from "./types";
+import {
+  JevResponse,
+  JevInput,
+  Env,
+  CreditStatus,
+  ThirtyDayAttackInput,
+  ThirtyDayAttackResult,
+} from "./types";
+import { computeAttackMetrics, buildJevAttackPrompt } from "./attack-engine";
 import { getHtmlDashboard } from "./ui";
 
 // In-memory fallback map for local testing when KV is not attached
@@ -435,6 +443,66 @@ export default {
       const response = (await env.AI.run("typesafe/jev", input)) as JevResponse;
       await deductCredit(req, env);
       return Response.json(response);
+    }
+
+    // --- POST /30-day-attack --- Datalumina 30-Day Freelancer Attack Evaluator
+    if (url.pathname === "/30-day-attack" && req.method === "POST") {
+      const creditStatus = await getCreditStatus(req, env);
+      if (creditStatus.tier === "public") {
+        return Response.json(
+          {
+            error:
+              "The 30-Day Freelancer Attack Evaluator is reserved exclusively for Datalumina course students. Please enter your VIP passcode to unlock.",
+            vipRequired: true,
+            creditStatus,
+          },
+          { status: 403 }
+        );
+      }
+      if (!creditStatus.allowed) {
+        return Response.json(
+          { error: creditStatus.error, creditStatus },
+          { status: 429 }
+        );
+      }
+
+      const body = await req.json<ThirtyDayAttackInput>();
+
+      if (!body.proposals && !body.calls) {
+        return new Response(
+          JSON.stringify({
+            error: "At least one of 'proposals' or 'calls' arrays is required.",
+          }),
+          { status: 400, headers: { "Content-Type": "application/json" } }
+        );
+      }
+
+      // Compute deterministic metrics and active 30-day attack window
+      const { window, metrics } = computeAttackMetrics(body);
+
+      // Build structured prompt for typesafe/jev
+      const jevInput = buildJevAttackPrompt(
+        window,
+        metrics,
+        body.studentName,
+        body.notes
+      );
+
+      // Run typesafe/jev AI evaluation
+      const jevEvaluation = (await env.AI.run(
+        "typesafe/jev",
+        jevInput
+      )) as JevResponse;
+
+      await deductCredit(req, env);
+
+      const result: ThirtyDayAttackResult = {
+        window,
+        deterministicMetrics: metrics,
+        jevEvaluation,
+      };
+
+      return Response.json(result);
     }
 
     return new Response("Not found", { status: 404 });
