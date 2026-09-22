@@ -177,6 +177,17 @@ export interface ThirtyDayAttackInput {
   };
   studentName?: string;
   notes?: string;
+  summaryMetrics?: {
+    proposals?: number;
+    replies?: number;
+    interviews?: number;
+    won?: number;
+    calls?: number;
+    introCalls?: number;
+    discoveryCalls?: number;
+    proposalCalls?: number;
+    inboundLeads?: number;
+  };
 }
 
 export interface ThirtyDayAttackResult {

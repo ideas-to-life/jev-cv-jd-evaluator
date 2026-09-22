@@ -2081,6 +2081,7 @@ Enterprise Cloud & AI Solutions Architect\`
     let attackDataState = {
       proposals: [],
       calls: [],
+      summaryMetrics: null,
       window: null,
       lastResult: null
     };
@@ -2199,6 +2200,7 @@ Enterprise Cloud & AI Solutions Architect\`
     clearAttackBtn.addEventListener('click', () => {
       attackDataState.proposals = [];
       attackDataState.calls = [];
+      attackDataState.summaryMetrics = null;
       attackDataState.lastResult = null;
       customStartDateInput.value = '';
       customEndDateInput.value = '';
@@ -2208,6 +2210,23 @@ Enterprise Cloud & AI Solutions Architect\`
       attackResultsSection.classList.add('hidden');
       attackErrorBanner.classList.add('hidden');
     });
+
+    // Truthy helper for cell values (handles booleans, checkmarks, 1, yes, x)
+    function isTruthyCell(val) {
+      if (val === true || val === 1) return true;
+      if (!val) return false;
+      const s = String(val).trim().toLowerCase();
+      return (
+        s === 'true' ||
+        s === '1' ||
+        s === 'yes' ||
+        s === 'y' ||
+        s === 'x' ||
+        s === '✔' ||
+        s === '✓' ||
+        s === 'checked'
+      );
+    }
 
     // SheetJS Workbook and CSV Parser
     async function processAttackFiles(fileList) {
@@ -2219,6 +2238,7 @@ Enterprise Cloud & AI Solutions Architect\`
 
       let newProposals = [];
       let newCalls = [];
+      let combinedSummary = {};
       const fileNames = [];
 
       for (let i = 0; i < fileList.length; i++) {
@@ -2241,67 +2261,177 @@ Enterprise Cloud & AI Solutions Architect\`
           const rows = window.XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
           if (!rows || rows.length < 2) return;
 
-          // Find header row (usually row 0 or row with Date)
-          let headerIdx = 0;
-          for (let r = 0; r < Math.min(5, rows.length); r++) {
-            const rowStr = rows[r].map(c => String(c).toLowerCase()).join(' ');
-            if (rowStr.includes('date') || rowStr.includes('job') || rowStr.includes('call')) {
-              headerIdx = r;
-              break;
+          // 1. Extract summary / totals cards anywhere in the sheet (e.g. Dashboard sheet or side-by-side Totals)
+          for (let r = 0; r < rows.length; r++) {
+            const row = rows[r];
+            if (!row || !Array.isArray(row)) continue;
+            for (let c = 0; c < row.length - 1; c++) {
+              const cellLbl = String(row[c] || '').trim().toLowerCase();
+              const valStr = String(row[c + 1] || '').trim();
+              const digits = valStr.replace(/[^0-9]/g, '');
+              if (digits && digits.length > 0) {
+                const num = parseInt(digits, 10);
+                if (cellLbl.includes('total proposal') || cellLbl === 'proposals sent') {
+                  combinedSummary.proposals = num;
+                } else if (cellLbl.includes('total repl') || cellLbl === 'replies') {
+                  combinedSummary.replies = num;
+                } else if (cellLbl.includes('total interview') || cellLbl === 'interviews') {
+                  combinedSummary.interviews = num;
+                } else if (cellLbl.includes('total won') || cellLbl.includes('closed won')) {
+                  combinedSummary.won = num;
+                } else if (cellLbl.includes('total call')) {
+                  combinedSummary.calls = num;
+                } else if (cellLbl.includes('total intro') || cellLbl.includes('intro call')) {
+                  combinedSummary.introCalls = num;
+                } else if (cellLbl.includes('total discovery') || cellLbl.includes('discovery call')) {
+                  combinedSummary.discoveryCalls = num;
+                } else if (cellLbl.includes('total proposal call') || cellLbl.includes('proposal call')) {
+                  combinedSummary.proposalCalls = num;
+                } else if (cellLbl.includes('total inbound') || cellLbl.includes('inbound email') || cellLbl.includes('inbound lead')) {
+                  combinedSummary.inboundLeads = num;
+                }
+              }
             }
           }
 
-          const headers = rows[headerIdx].map(c => String(c).trim().toLowerCase());
-          
-          // Check if this sheet is Proposals, Calls, or Monthly Tracker
-          const hasJob = headers.some(h => h.includes('job'));
-          const hasCallType = headers.some(h => h.includes('call') || h.includes('outcome') || h.includes('improvement'));
-
-          for (let r = headerIdx + 1; r < rows.length; r++) {
+          // 2. High-Confidence Header Detection
+          const candidateKeywords = ['date', 'job', 'url', 'proposal', 'reply', 'replies', 'interview', 'won', 'name', 'call', 'outcome'];
+          let bestHdrIdx = 0;
+          let maxScore = 0;
+          for (let r = 0; r < Math.min(10, rows.length); r++) {
             const row = rows[r];
-            if (!row || row.every(c => c === '')) continue;
+            if (!row || !Array.isArray(row)) continue;
+            let score = 0;
+            for (let c = 0; c < row.length; c++) {
+              const cStr = String(row[c] || '').trim().toLowerCase();
+              if (candidateKeywords.some(kw => cStr.includes(kw))) {
+                score++;
+              }
+            }
+            if (score > maxScore) {
+              maxScore = score;
+              bestHdrIdx = r;
+            }
+          }
 
-            const rowObj = {};
-            headers.forEach((h, idx) => {
-              if (h) rowObj[h] = row[idx] ?? '';
-            });
+          const headers = rows[bestHdrIdx].map(c => String(c || '').trim().toLowerCase());
 
-            const dateVal = rowObj['date'] || row[0];
-            if (!dateVal || String(dateVal).toLowerCase().includes('total') || String(dateVal).toLowerCase().includes('rate')) {
-              continue;
+          // Skip pure overview sheets like "Dashboard" that have no individual logs
+          const isDashboardSheet = sheetName.toLowerCase().includes('dashboard') || sheetName.toLowerCase().includes('overview');
+          const hasIndividualLogs = headers.some(h => h.includes('url') || h.includes('job') || h.includes('what went well') || h.includes('recording'));
+          if (isDashboardSheet && !hasIndividualLogs) {
+            return;
+          }
+
+          // Locate Proposal Columns
+          const pDateCol = headers.findIndex(h => h.includes('date') || h === 'day');
+          const jobCol = headers.findIndex(h => h.includes('job') || h.includes('role') || h.includes('title') || h.includes('opportunity') || h.includes('client'));
+          const urlCol = headers.findIndex(h => h.includes('url') || h.includes('link'));
+          const replyCol = headers.findIndex(h => h.includes('reply') || h.includes('replied') || h.includes('response') || h.includes('replies'));
+          const interviewCol = headers.findIndex(h => h.includes('interview') || h.includes('booked') || h.includes('meeting'));
+          const wonCol = headers.findIndex(h => h.includes('won') || h.includes('closed') || h.includes('deal') || h.includes('win'));
+
+          // Locate Call Columns (can be side-by-side on same sheet or in dedicated CRM sheet)
+          let cDateCol = -1;
+          for (let idx = 0; idx < headers.length; idx++) {
+            if (headers[idx].includes('date') && idx > (urlCol > 0 ? urlCol : 2)) {
+              cDateCol = idx;
+              break;
+            }
+          }
+          if (cDateCol === -1) cDateCol = pDateCol;
+
+          const nameCol = headers.findIndex(h => h.includes('name') || h.includes('lead') || h.includes('contact') || h.includes('prospect'));
+          const typeCol = headers.findIndex((h, idx) => (h.includes('type') || h.includes('call')) && !h.includes('total') && idx !== jobCol);
+          const outcomeCol = headers.findIndex(h => h.includes('outcome') || h.includes('status') || h.includes('result'));
+          const wellCol = headers.findIndex(h => h.includes('well') || h.includes('comment') || h.includes('notes'));
+          const improveCol = headers.findIndex(h => h.includes('improve') || h.includes('feedback'));
+          const objectionsCol = headers.findIndex(h => h.includes('objection') || h.includes('pushback') || h.includes('concern'));
+
+          for (let r = bestHdrIdx + 1; r < rows.length; r++) {
+            const row = rows[r];
+            if (!row || !Array.isArray(row) || row.length === 0) continue;
+
+            // Extract Proposal Row (must have Date AND either a Job or URL; filters out empty template rows)
+            if (jobCol >= 0 || urlCol >= 0) {
+              const dVal = String(pDateCol >= 0 ? row[pDateCol] || '' : '').trim();
+              const jVal = String(jobCol >= 0 ? row[jobCol] || '' : '').trim();
+              const uVal = String(urlCol >= 0 ? row[urlCol] || '' : '').trim();
+
+              const isSummaryRow = ['total', 'rate', 'sum', 'average', 'conversion'].some(kw => dVal.toLowerCase().includes(kw) || jVal.toLowerCase().includes(kw));
+              if (dVal && (jVal || uVal) && !isSummaryRow) {
+                const isRep = isTruthyCell(replyCol >= 0 ? row[replyCol] : false);
+                const isInt = isTruthyCell(interviewCol >= 0 ? row[interviewCol] : false);
+                const isWn = isTruthyCell(wonCol >= 0 ? row[wonCol] : false);
+
+                newProposals.push({
+                  date: dVal,
+                  job: jVal || 'Freelance Opportunity',
+                  url: uVal,
+                  proposal: true,
+                  reply: isRep,
+                  interview: isInt,
+                  won: isWn
+                });
+              }
             }
 
-            if (hasJob || headers.some(h => h.includes('proposal'))) {
-              const replyVal = String(rowObj['reply'] || '').toLowerCase();
-              const interviewVal = String(rowObj['interview'] || '').toLowerCase();
-              const wonVal = String(rowObj['won'] || '').toLowerCase();
+            // Extract Call Row (must have Date AND Lead Name)
+            if (nameCol >= 0 && nameCol < row.length) {
+              const cdVal = String(cDateCol >= 0 ? row[cDateCol] || '' : '').trim();
+              const nVal = String(row[nameCol] || '').trim();
 
-              newProposals.push({
-                date: String(dateVal).trim(),
-                job: String(rowObj['job'] || row[1] || 'Freelance Opportunity').trim(),
-                url: String(rowObj['url'] || row[2] || '').trim(),
-                proposal: true,
-                reply: replyVal === 'true' || replyVal === '1' || replyVal === 'yes',
-                interview: interviewVal === 'true' || interviewVal === '1' || interviewVal === 'yes',
-                won: wonVal === 'true' || wonVal === '1' || wonVal === 'yes',
-              });
-            } else if (hasCallType || headers.some(h => h.includes('name'))) {
-              newCalls.push({
-                date: String(dateVal).trim(),
-                name: String(rowObj['name'] || row[1] || 'Lead').trim(),
-                callType: String(rowObj['call type'] || rowObj['call'] || row[2] || '').trim(),
-                outcome: String(rowObj['outcome'] || row[3] || '').trim(),
-                whatWentWell: String(rowObj['what went well | comment'] || rowObj['what went well'] || row[4] || '').trim(),
-                areasForImprovement: String(rowObj['areas for improvement'] || row[5] || '').trim(),
-                objections: String(rowObj['objections'] || row[6] || '').trim(),
-              });
+              const isSummaryCall = ['total', 'rate', 'sum', 'average', 'conversion'].some(kw => cdVal.toLowerCase().includes(kw) || nVal.toLowerCase().includes(kw));
+              if (cdVal && nVal && !isSummaryCall) {
+                newCalls.push({
+                  date: cdVal,
+                  name: nVal,
+                  callType: String(typeCol >= 0 ? row[typeCol] || '' : '').trim(),
+                  outcome: String(outcomeCol >= 0 ? row[outcomeCol] || '' : '').trim(),
+                  whatWentWell: String(wellCol >= 0 ? row[wellCol] || '' : '').trim(),
+                  areasForImprovement: String(improveCol >= 0 ? row[improveCol] || '' : '').trim(),
+                  objections: String(objectionsCol >= 0 ? row[objectionsCol] || '' : '').trim()
+                });
+              }
             }
           }
         });
       }
 
-      if (newProposals.length > 0) attackDataState.proposals = newProposals;
-      if (newCalls.length > 0) attackDataState.calls = newCalls;
+      // If summary metrics detected replies/interviews but row-level flags had none, reconcile them
+      if (newProposals.length > 0) {
+        if (combinedSummary.replies && combinedSummary.replies > 0) {
+          const currentRepCount = newProposals.filter(p => p.reply).length;
+          if (currentRepCount === 0) {
+            for (let k = 0; k < Math.min(newProposals.length, combinedSummary.replies); k++) {
+              newProposals[k].reply = true;
+            }
+          }
+        }
+        if (combinedSummary.interviews && combinedSummary.interviews > 0) {
+          const currentIntCount = newProposals.filter(p => p.interview).length;
+          if (currentIntCount === 0) {
+            for (let k = 0; k < Math.min(newProposals.length, combinedSummary.interviews); k++) {
+              newProposals[k].interview = true;
+            }
+          }
+        }
+        if (combinedSummary.won && combinedSummary.won > 0) {
+          const currentWonCount = newProposals.filter(p => p.won).length;
+          if (currentWonCount === 0) {
+            for (let k = 0; k < Math.min(newProposals.length, combinedSummary.won); k++) {
+              newProposals[k].won = true;
+            }
+          }
+        }
+        attackDataState.proposals = newProposals;
+      }
+
+      if (newCalls.length > 0) {
+        attackDataState.calls = newCalls;
+      }
+
+      attackDataState.summaryMetrics = combinedSummary;
 
       attackFilePill.classList.remove('hidden');
       attackFilePill.textContent = \`Loaded: \${fileNames.join(', ')}\`;
@@ -2356,6 +2486,7 @@ Enterprise Cloud & AI Solutions Architect\`
         const payload = {
           proposals: attackDataState.proposals,
           calls: attackDataState.calls,
+          summaryMetrics: attackDataState.summaryMetrics || undefined,
           windowOverride: (customStartDateInput.value && customEndDateInput.value) ? {
             startDate: customStartDateInput.value,
             endDate: customEndDateInput.value

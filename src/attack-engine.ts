@@ -87,6 +87,25 @@ export const DEFAULT_DATALUMINA_BENCHMARKS: KpiBenchmarkTarget[] = [
 ];
 
 /**
+ * Checks if a cell value indicates a truthy state (checkmarks, boolean, 1, yes, x)
+ */
+export function isTruthyMetric(val: unknown): boolean {
+  if (val === true || val === 1) return true;
+  if (!val) return false;
+  const s = String(val).trim().toLowerCase();
+  return (
+    s === "true" ||
+    s === "1" ||
+    s === "yes" ||
+    s === "y" ||
+    s === "x" ||
+    s === "✔" ||
+    s === "✓" ||
+    s === "checked"
+  );
+}
+
+/**
  * Normalizes loose dates (e.g. "9/9/2026", "01/09/2026", "2026-09-09", Excel serials) into YYYY-MM-DD
  */
 export function normalizeDate(dateVal: unknown): string | null {
@@ -245,9 +264,9 @@ export function computeAttackMetrics(
   for (const p of inWindowProposals) {
     const nd = normalizeDate(p.date);
     if (nd) activeDatesSet.add(nd);
-    if (p.reply === true || String(p.reply).toLowerCase() === "true") totalReplies++;
-    if (p.interview === true || String(p.interview).toLowerCase() === "true") totalInterviews++;
-    if (p.won === true || String(p.won).toLowerCase() === "true") totalWon++;
+    if (isTruthyMetric(p.reply)) totalReplies++;
+    if (isTruthyMetric(p.interview)) totalInterviews++;
+    if (isTruthyMetric(p.won)) totalWon++;
     if (p.job && sampleRoles.length < 5 && !sampleRoles.includes(p.job)) {
       sampleRoles.push(p.job.trim());
     }
@@ -283,6 +302,32 @@ export function computeAttackMetrics(
       if (!topObjections.includes(c.objections.trim())) {
         topObjections.push(c.objections.trim());
       }
+    }
+  }
+
+  // Reconcile with sheet/dashboard summary metrics if row-level flags were unpopulated
+  if (input.summaryMetrics) {
+    const sm = input.summaryMetrics;
+    if (typeof sm.replies === "number" && sm.replies > 0 && totalReplies === 0 && totalProposalsSent > 0) {
+      totalReplies = Math.min(totalProposalsSent, sm.replies);
+    }
+    if (typeof sm.interviews === "number" && sm.interviews > 0 && totalInterviews === 0 && totalProposalsSent > 0) {
+      totalInterviews = Math.min(totalProposalsSent, sm.interviews);
+    }
+    if (typeof sm.won === "number" && sm.won > 0 && totalWon === 0 && totalProposalsSent > 0) {
+      totalWon = Math.min(totalProposalsSent, sm.won);
+    }
+    if (typeof sm.introCalls === "number" && sm.introCalls > 0 && introCalls === 0) {
+      introCalls = sm.introCalls;
+    }
+    if (typeof sm.discoveryCalls === "number" && sm.discoveryCalls > 0 && discoveryCalls === 0) {
+      discoveryCalls = sm.discoveryCalls;
+    }
+    if (typeof sm.proposalCalls === "number" && sm.proposalCalls > 0 && proposalCalls === 0) {
+      proposalCalls = sm.proposalCalls;
+    }
+    if (typeof sm.inboundLeads === "number" && sm.inboundLeads > 0 && inboundLeads === 0) {
+      inboundLeads = sm.inboundLeads;
     }
   }
 
@@ -352,9 +397,9 @@ export function computeAttackMetrics(
     let wInt = 0;
     let wWon = 0;
     for (const p of wProposals) {
-      if (p.reply === true || String(p.reply).toLowerCase() === "true") wRep++;
-      if (p.interview === true || String(p.interview).toLowerCase() === "true") wInt++;
-      if (p.won === true || String(p.won).toLowerCase() === "true") wWon++;
+      if (isTruthyMetric(p.reply)) wRep++;
+      if (isTruthyMetric(p.interview)) wInt++;
+      if (isTruthyMetric(p.won)) wWon++;
     }
 
     weeklyCohorts.push({
