@@ -170,15 +170,37 @@ export function normalizeDate(dateVal: unknown, sheetContext?: string): string |
     const p1 = parseInt(delimMatch[1], 10);
     const p2 = parseInt(delimMatch[2], 10);
     const y = parseInt(delimMatch[3], 10);
-    let day = p1;
-    let month = p2;
-    if (p2 > 12 && p1 <= 12) {
-      month = p1;
-      day = p2;
+
+    // If p1 > 12, must be DD/MM/YYYY
+    if (p1 > 12 && p2 <= 12) {
+      return `${y}-${String(p2).padStart(2, "0")}-${String(p1).padStart(2, "0")}`;
     }
-    const dStr = String(day).padStart(2, "0");
-    const mStr = String(month).padStart(2, "0");
-    return `${y}-${mStr}-${dStr}`;
+    // If p2 > 12, must be MM/DD/YYYY
+    if (p2 > 12 && p1 <= 12) {
+      return `${y}-${String(p1).padStart(2, "0")}-${String(p2).padStart(2, "0")}`;
+    }
+
+    // Both <= 12: ambiguous (e.g. 9/10/2026 vs 10/9/2026)
+    const dmyStr = `${y}-${String(p2).padStart(2, "0")}-${String(p1).padStart(2, "0")}`;
+    const mdyStr = `${y}-${String(p1).padStart(2, "0")}-${String(p2).padStart(2, "0")}`;
+    const todayStr = new Date().toISOString().split("T")[0];
+
+    // 1. If sheetContext indicates month name (e.g. "September" -> 9)
+    const monthNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+    const sLower = (sheetContext || "").toLowerCase();
+    const mIdx = monthNames.findIndex(m => sLower.includes(m));
+    if (mIdx >= 0) {
+      const targetMonth = mIdx + 1;
+      if (p1 === targetMonth && p2 !== targetMonth) return mdyStr;
+      if (p2 === targetMonth && p1 !== targetMonth) return dmyStr;
+    }
+
+    // 2. Reject future dates: activity dates can never be in the future relative to today
+    if (dmyStr > todayStr && mdyStr <= todayStr) return mdyStr;
+    if (mdyStr > todayStr && dmyStr <= todayStr) return dmyStr;
+
+    // 3. Default to UK/European DMY convention
+    return dmyStr;
   }
 
   // 5. D-Mon-YYYY or D-Mon (e.g. 9-Sep-2026, 9-Sep)
@@ -261,10 +283,22 @@ export function calculateAttackWindow(
     }
   }
 
-  let refDateStr = new Date().toISOString().split("T")[0];
+  const todayStr = new Date().toISOString().split("T")[0];
+  let refDateStr = todayStr;
   if (allDates.length > 0) {
     allDates.sort();
-    refDateStr = allDates[allDates.length - 1];
+    const validPastDates = allDates.filter((d) => d <= todayStr);
+    if (validPastDates.length > 0) {
+      const latestActivityDate = validPastDates[validPastDates.length - 1];
+      const diffDays = Math.round(
+        (new Date(todayStr).getTime() - new Date(latestActivityDate).getTime()) /
+          86400000
+      );
+      // If latest activity was within the current attack cycle (last 30 days of today),
+      // anchor to today so Week 4 is the current active calendar week.
+      // Otherwise anchor to latestActivityDate for historical attack evaluations.
+      refDateStr = diffDays <= 30 ? todayStr : latestActivityDate;
+    }
   }
 
   const [ry, rm, rd] = refDateStr.split("-").map((n) => parseInt(n, 10));

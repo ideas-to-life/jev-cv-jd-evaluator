@@ -2426,10 +2426,30 @@ Enterprise Cloud & AI Solutions Architect\`
             const p2 = parseInt(parts[1], 10);
             const y = parseInt(parts[2], 10);
             if (!isNaN(p1) && !isNaN(p2) && !isNaN(y) && y >= 2000 && y <= 2050) {
-              let day = p1;
-              let month = p2;
-              if (p2 > 12 && p1 <= 12) { month = p1; day = p2; }
-              return y + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+              if (p1 > 12 && p2 <= 12) {
+                return y + '-' + String(p2).padStart(2, '0') + '-' + String(p1).padStart(2, '0');
+              }
+              if (p2 > 12 && p1 <= 12) {
+                return y + '-' + String(p1).padStart(2, '0') + '-' + String(p2).padStart(2, '0');
+              }
+
+              const dmyStr = y + '-' + String(p2).padStart(2, '0') + '-' + String(p1).padStart(2, '0');
+              const mdyStr = y + '-' + String(p1).padStart(2, '0') + '-' + String(p2).padStart(2, '0');
+              const todayStr = new Date().toISOString().split('T')[0];
+
+              const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+              const sLower = String(sheetContext || '').toLowerCase();
+              let mIdx = monthNames.findIndex(m => sLower.includes(m));
+              if (mIdx >= 0) {
+                const targetMonth = mIdx + 1;
+                if (p1 === targetMonth && p2 !== targetMonth) return mdyStr;
+                if (p2 === targetMonth && p1 !== targetMonth) return dmyStr;
+              }
+
+              if (dmyStr > todayStr && mdyStr <= todayStr) return mdyStr;
+              if (mdyStr > todayStr && dmyStr <= todayStr) return dmyStr;
+
+              return dmyStr;
             }
           }
         }
@@ -2482,10 +2502,18 @@ Enterprise Cloud & AI Solutions Architect\`
       attackDataState.calls.forEach(c => { const d = clientNormalizeDate(c.date); if (d) allDates.push(d); });
       attackDataState.socialSelling.forEach(s => { const d = clientNormalizeDate(s.date); if (d) allDates.push(d); });
 
-      let refDateStr = new Date().toISOString().split('T')[0];
+      const todayStr = new Date().toISOString().split('T')[0];
+      let refDateStr = todayStr;
       if (allDates.length > 0) {
         allDates.sort();
-        refDateStr = allDates[allDates.length - 1];
+        const validPastDates = allDates.filter(d => d <= todayStr);
+        if (validPastDates.length > 0) {
+          const latestActivityDate = validPastDates[validPastDates.length - 1];
+          const diffDays = Math.round(
+            (new Date(todayStr).getTime() - new Date(latestActivityDate).getTime()) / 86400000
+          );
+          refDateStr = (diffDays <= 30) ? todayStr : latestActivityDate;
+        }
       }
 
       const [ry, rm, rd] = refDateStr.split('-').map(Number);
