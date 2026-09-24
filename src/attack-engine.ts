@@ -1,6 +1,12 @@
 import {
   ProposalRow,
   CallRow,
+  SocialSellingRow,
+  FocusStrategy,
+  UpworkMetrics,
+  SalesCrmMetrics,
+  SocialSellingMetrics,
+  ConsolidatedPipelineMetrics,
   AttackWindow,
   KpiBenchmarkTarget,
   CohortWeeklyMetrics,
@@ -111,11 +117,11 @@ export function isTruthyMetric(val: unknown): boolean {
 export function normalizeDate(dateVal: unknown): string | null {
   if (!dateVal) return null;
 
-  // If number (Excel serial timestamp)
-  if (typeof dateVal === "number" && !isNaN(dateVal)) {
-    // Excel epoch starts 1899-12-30
+  // If number or numeric string (Excel serial timestamp, e.g. 46288 or "46288")
+  const num = Number(dateVal);
+  if (!isNaN(num) && num >= 30000 && num <= 65000) {
     const excelEpoch = new Date(Date.UTC(1899, 11, 30));
-    const jsDate = new Date(excelEpoch.getTime() + dateVal * 86400000);
+    const jsDate = new Date(excelEpoch.getTime() + num * 86400000);
     if (!isNaN(jsDate.getTime())) {
       return jsDate.toISOString().split("T")[0];
     }
@@ -149,10 +155,24 @@ export function normalizeDate(dateVal: unknown): string | null {
     return `${y}-${mStr}-${dStr}`;
   }
 
-  // General JS parse attempt
+  // Match 3-letter or full month name (e.g. "Jan", "Feb", "Sep", "September", etc.)
+  const monthNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+  const lower = str.toLowerCase();
+  const mMatch = monthNames.findIndex(m => lower === m || lower.startsWith(m));
+  if (mMatch >= 0 && str.length <= 15) {
+    const monthNum = String(mMatch + 1).padStart(2, "0");
+    const yMatch = str.match(/\b(202\d)\b/);
+    const yr = yMatch ? yMatch[1] : "2026";
+    return `${yr}-${monthNum}-15`;
+  }
+
+  // General JS parse attempt (only accept realistic calendar years 2000-2050)
   const parsed = new Date(str);
   if (!isNaN(parsed.getTime())) {
-    return parsed.toISOString().split("T")[0];
+    const y = parsed.getFullYear();
+    if (y >= 2000 && y <= 2050) {
+      return parsed.toISOString().split("T")[0];
+    }
   }
 
   return null;
@@ -166,6 +186,7 @@ export function normalizeDate(dateVal: unknown): string | null {
 export function calculateAttackWindow(
   proposals: ProposalRow[],
   calls: CallRow[],
+  socialSelling?: SocialSellingRow[],
   windowOverride?: { startDate?: string; endDate?: string }
 ): AttackWindow {
   if (windowOverride?.startDate && windowOverride?.endDate) {
@@ -183,7 +204,7 @@ export function calculateAttackWindow(
     };
   }
 
-  // Find latest recorded activity date across all proposals and calls
+  // Find latest recorded activity date across all proposals, calls, and socialSelling
   const allDates: string[] = [];
   for (const p of proposals) {
     const nd = normalizeDate(p.date);
@@ -192,6 +213,12 @@ export function calculateAttackWindow(
   for (const c of calls) {
     const nd = normalizeDate(c.date);
     if (nd) allDates.push(nd);
+  }
+  if (socialSelling) {
+    for (const s of socialSelling) {
+      const nd = normalizeDate(s.date);
+      if (nd) allDates.push(nd);
+    }
   }
 
   let refDateStr = new Date().toISOString().split("T")[0];
@@ -204,7 +231,6 @@ export function calculateAttackWindow(
   const refDate = new Date(Date.UTC(ry, rm - 1, rd));
 
   // Compute end of current week (Sunday)
-  // getUTCDay: 0 is Sunday, 1 is Monday ... 6 is Saturday
   const dayOfWeek = refDate.getUTCDay();
   const daysUntilSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
   const endOfWeek = new Date(refDate.getTime() + daysUntilSunday * 86400000);
@@ -232,6 +258,7 @@ export function computeAttackMetrics(
   const window = calculateAttackWindow(
     input.proposals || [],
     input.calls || [],
+    input.socialSelling || [],
     input.windowOverride
   );
 
@@ -253,7 +280,14 @@ export function computeAttackMetrics(
     return ms >= startMs && ms <= endMs;
   });
 
-  // Funnel counts
+  const inWindowSocial = (input.socialSelling || []).filter((s) => {
+    const nd = normalizeDate(s.date);
+    if (!nd) return false;
+    const ms = new Date(nd).getTime();
+    return ms >= startMs && ms <= endMs;
+  });
+
+  // Funnel counts (Upwork)
   const totalProposalsSent = inWindowProposals.length;
   let totalReplies = 0;
   let totalInterviews = 0;
@@ -272,7 +306,7 @@ export function computeAttackMetrics(
     }
   }
 
-  // Call breakdown
+  // Call breakdown (CRM)
   let introCalls = 0;
   let discoveryCalls = 0;
   let proposalCalls = 0;
@@ -305,6 +339,23 @@ export function computeAttackMetrics(
     }
   }
 
+  // Social Selling breakdown
+  let totalConnectionsSent = 0;
+  let totalDmsSent = 0;
+  let totalPositiveReplies = 0;
+  let totalCallsBooked = 0;
+  let totalSocialWon = 0;
+
+  for (const s of inWindowSocial) {
+    const nd = normalizeDate(s.date);
+    if (nd) activeDatesSet.add(nd);
+    totalConnectionsSent += Number(s.connectionsSent) || 0;
+    totalDmsSent += Number(s.dmsSent) || 0;
+    totalPositiveReplies += Number(s.positiveReplies) || 0;
+    totalCallsBooked += Number(s.callsBooked) || 0;
+    totalSocialWon += Number(s.projectsWon) || 0;
+  }
+
   // Reconcile with sheet/dashboard summary metrics if row-level flags were unpopulated
   if (input.summaryMetrics) {
     const sm = input.summaryMetrics;
@@ -329,9 +380,24 @@ export function computeAttackMetrics(
     if (typeof sm.inboundLeads === "number" && sm.inboundLeads > 0 && inboundLeads === 0) {
       inboundLeads = sm.inboundLeads;
     }
+    if (typeof sm.socialConnections === "number" && sm.socialConnections > 0 && totalConnectionsSent === 0) {
+      totalConnectionsSent = sm.socialConnections;
+    }
+    if (typeof sm.socialDms === "number" && sm.socialDms > 0 && totalDmsSent === 0) {
+      totalDmsSent = sm.socialDms;
+    }
+    if (typeof sm.socialReplies === "number" && sm.socialReplies > 0 && totalPositiveReplies === 0) {
+      totalPositiveReplies = sm.socialReplies;
+    }
+    if (typeof sm.socialCalls === "number" && sm.socialCalls > 0 && totalCallsBooked === 0) {
+      totalCallsBooked = sm.socialCalls;
+    }
+    if (typeof sm.socialWon === "number" && sm.socialWon > 0 && totalSocialWon === 0) {
+      totalSocialWon = sm.socialWon;
+    }
   }
 
-  // Conversion calculations
+  // Upwork Conversion calculations
   const replyRate =
     totalProposalsSent > 0 ? (totalReplies / totalProposalsSent) * 100 : 0;
   const interviewRate =
@@ -341,7 +407,23 @@ export function computeAttackMetrics(
   const overallWinRate =
     totalProposalsSent > 0 ? (totalWon / totalProposalsSent) * 100 : 0;
 
-  const totalCalls = inWindowCalls.length;
+  const upworkMetrics: UpworkMetrics = {
+    proposalsSent: totalProposalsSent,
+    replies: totalReplies,
+    interviews: totalInterviews,
+    won: totalWon,
+    replyRate: Math.round(replyRate * 10) / 10,
+    interviewRate: Math.round(interviewRate * 10) / 10,
+    interviewToProjectRate: Math.round(interviewToProjectRate * 10) / 10,
+    overallWinRate: Math.round(overallWinRate * 10) / 10,
+  };
+
+  // CRM Conversion calculations
+  const totalCalls = Math.max(
+    inWindowCalls.length,
+    typeof input.summaryMetrics?.calls === "number" ? input.summaryMetrics.calls : 0,
+    introCalls + discoveryCalls + proposalCalls
+  );
   const introToDiscoveryRate =
     introCalls > 0 ? (discoveryCalls / introCalls) * 100 : 0;
   const discoveryToProposalRate =
@@ -352,6 +434,89 @@ export function computeAttackMetrics(
     totalCalls > 0 ? (totalWon / totalCalls) * 100 : 0;
   const inboundToDiscoveryRate =
     inboundLeads > 0 ? (inboundToDiscovery / inboundLeads) * 100 : 0;
+
+  const salesCrmMetrics: SalesCrmMetrics = {
+    totalCalls,
+    introCalls,
+    discoveryCalls,
+    proposalCalls,
+    inboundLeads,
+    introToDiscoveryRate: Math.round(introToDiscoveryRate * 10) / 10,
+    discoveryToProposalRate: Math.round(discoveryToProposalRate * 10) / 10,
+    proposalToProjectRate: Math.round(proposalToProjectRate * 10) / 10,
+    overallCallConversionRate: Math.round(overallCallConversionRate * 10) / 10,
+    inboundToDiscoveryRate: Math.round(inboundToDiscoveryRate * 10) / 10,
+    topObjections,
+  };
+
+  // Social Selling Conversion calculations
+  const connectionToDmRate =
+    totalConnectionsSent > 0 ? (totalDmsSent / totalConnectionsSent) * 100 : 0;
+  const dmToReplyRate =
+    totalDmsSent > 0 ? (totalPositiveReplies / totalDmsSent) * 100 : 0;
+  const replyToCallRate =
+    totalPositiveReplies > 0 ? (totalCallsBooked / totalPositiveReplies) * 100 : 0;
+  const callToProjectRate =
+    totalCallsBooked > 0 ? (totalSocialWon / totalCallsBooked) * 100 : 0;
+
+  const socialSellingMetrics: SocialSellingMetrics = {
+    totalConnectionsSent,
+    totalDmsSent,
+    totalPositiveReplies,
+    totalCallsBooked,
+    totalProjectsWon: totalSocialWon,
+    connectionToDmRate: Math.round(connectionToDmRate * 10) / 10,
+    dmToReplyRate: Math.round(dmToReplyRate * 10) / 10,
+    replyToCallRate: Math.round(replyToCallRate * 10) / 10,
+    callToProjectRate: Math.round(callToProjectRate * 10) / 10,
+  };
+
+  // Active channel detection & Focus Strategy resolution
+  const hasUpwork = totalProposalsSent > 0 || inWindowProposals.length > 0;
+  const hasCrm = totalCalls > 0 || inWindowCalls.length > 0;
+  const hasSocial =
+    totalConnectionsSent > 0 || totalDmsSent > 0 || inWindowSocial.length > 0;
+
+  const activeChannels = {
+    upwork: hasUpwork,
+    salesCrm: hasCrm,
+    socialSelling: hasSocial,
+  };
+
+  let focusStrategy: FocusStrategy = input.focusStrategy || "omni";
+  if (!input.focusStrategy) {
+    const activeCount =
+      (hasUpwork ? 1 : 0) + (hasCrm ? 1 : 0) + (hasSocial ? 1 : 0);
+    if (activeCount === 1) {
+      if (hasUpwork) focusStrategy = "upwork";
+      else if (hasCrm) focusStrategy = "sales_crm";
+      else if (hasSocial) focusStrategy = "social_selling";
+    } else {
+      focusStrategy = "omni";
+    }
+  }
+
+  // Consolidated Pipeline Totals
+  const totalOutboundVolume =
+    totalProposalsSent + totalConnectionsSent + (introCalls + inboundLeads);
+  const totalEngagements = totalReplies + totalPositiveReplies + inboundLeads;
+  const totalQualifiedCalls = totalInterviews + discoveryCalls + totalCallsBooked;
+  const totalDealsWon = totalWon + totalSocialWon;
+  const overallCallBookingRate =
+    totalOutboundVolume > 0 ? (totalQualifiedCalls / totalOutboundVolume) * 100 : 0;
+  const overallClosingRate =
+    totalQualifiedCalls > 0 ? (totalDealsWon / totalQualifiedCalls) * 100 : 0;
+
+  const consolidated: ConsolidatedPipelineMetrics = {
+    focusStrategy,
+    activeChannels,
+    totalOutboundVolume,
+    totalEngagements,
+    totalQualifiedCalls,
+    totalDealsWon,
+    overallCallBookingRate: Math.round(overallCallBookingRate * 10) / 10,
+    overallClosingRate: Math.round(overallClosingRate * 10) / 10,
+  };
 
   // Daily momentum & cadence
   const activeDaysCount = activeDatesSet.size;
@@ -392,6 +557,13 @@ export function computeAttackMetrics(
       return ms >= cStartMs && ms <= cEndMs;
     });
 
+    const wSocial = inWindowSocial.filter((s) => {
+      const nd = normalizeDate(s.date);
+      if (!nd) return false;
+      const ms = new Date(nd).getTime();
+      return ms >= cStartMs && ms <= cEndMs;
+    });
+
     const wSent = wProposals.length;
     let wRep = 0;
     let wInt = 0;
@@ -402,6 +574,18 @@ export function computeAttackMetrics(
       if (isTruthyMetric(p.won)) wWon++;
     }
 
+    const wConn = wSocial.reduce((sum, s) => sum + (Number(s.connectionsSent) || 0), 0);
+    const wDms = wSocial.reduce((sum, s) => sum + (Number(s.dmsSent) || 0), 0);
+    const wSocReplies = wSocial.reduce((sum, s) => sum + (Number(s.positiveReplies) || 0), 0);
+    const wSocCalls = wSocial.reduce((sum, s) => sum + (Number(s.callsBooked) || 0), 0);
+    const wSocWon = wSocial.reduce((sum, s) => sum + (Number(s.projectsWon) || 0), 0);
+
+    const totalWeekOutbound = wSent + wDms;
+    const totalWeekReplies = wRep + wSocReplies;
+    const weeklyReplyRate = totalWeekOutbound > 0
+      ? (totalWeekReplies / totalWeekOutbound) * 100
+      : (wSent > 0 ? (wRep / wSent) * 100 : 0);
+
     weeklyCohorts.push({
       weekLabel: w === 3 ? "Week 4 (Current Week)" : `Week ${w + 1}`,
       startDate: cStartStr,
@@ -409,14 +593,26 @@ export function computeAttackMetrics(
       proposalsSent: wSent,
       replies: wRep,
       interviews: wInt,
-      dealsWon: wWon,
-      callsScheduled: wCalls.length,
-      replyRate: wSent > 0 ? (wRep / wSent) * 100 : 0,
-      interviewRate: wSent > 0 ? (wInt / wSent) * 100 : 0,
+      dealsWon: wWon + wSocWon,
+      callsScheduled: wCalls.length + wSocCalls,
+      replyRate: Math.round(weeklyReplyRate * 10) / 10,
+      interviewRate: wSent > 0 ? Math.round((wInt / wSent) * 1000) / 10 : 0,
+      socialConnections: wConn,
+      socialDms: wDms,
+      socialReplies: wSocReplies,
+      socialCalls: wSocCalls,
     });
   }
 
   const metrics: ThirtyDayAttackDeterministicMetrics = {
+    focusStrategy,
+    activeChannels,
+    channels: {
+      upwork: upworkMetrics,
+      salesCrm: salesCrmMetrics,
+      socialSelling: socialSellingMetrics,
+    },
+    consolidated,
     totalProposalsSent,
     totalReplies,
     totalInterviews,
@@ -461,7 +657,7 @@ export function buildJevAttackPrompt(
   const weeklySummary = m.weeklyCohorts
     .map(
       (w) =>
-        `- ${w.weekLabel} (${w.startDate} to ${w.endDate}): ${w.proposalsSent} proposals, ${w.replies} replies (${w.replyRate}%), ${w.interviews} interviews, ${w.callsScheduled} calls, ${w.dealsWon} won`
+        `- ${w.weekLabel} (${w.startDate} to ${w.endDate}): ${w.proposalsSent} Upwork proposals (${w.replies} replies, ${w.interviews} interviews), ${w.socialConnections || 0} social connections, ${w.socialDms || 0} DMs, ${w.callsScheduled} total calls/meetings, ${w.dealsWon} won`
     )
     .join("\n");
 
@@ -475,31 +671,51 @@ export function buildJevAttackPrompt(
       ? m.sampleRoles.map((r) => `  * ${r}`).join("\n")
       : "  * General freelancer / consulting roles";
 
+  const activeChannelsList = Object.entries(m.activeChannels)
+    .filter(([, v]) => v)
+    .map(([k]) => k.replace(/([A-Z])/g, " $1").toUpperCase())
+    .join(", ") || "NONE DETECTED";
+
   const state = `DATALUMINA FREELANCER 30-DAY ATTACK EVALUATION
 Candidate / Student: ${studentName || "Freelance Student"}
 Active 30-Day Window: ${window.startDate} to ${window.endDate} (Ending at Current Week)
 Total Days in Window: ${window.daysCovered} days | Active Action Days: ${m.activeDaysCount} days | Dormant Days: ${m.zeroActivityDaysCount} days
+Declared Focus Strategy: ${m.focusStrategy.toUpperCase()} (Active Channels: ${activeChannelsList})
 
-PROPOSALS & OUTREACH FUNNEL:
-- Total Proposals Sent: ${m.totalProposalsSent} (Target: 50-150 across 30 days)
-- Total Replies: ${m.totalReplies} (Reply Rate: ${m.replyRate}% | Target: 10% - 30%)
-- Total Interviews: ${m.totalInterviews} (Interview Rate: ${m.interviewRate}% | Target: 10% - 30%)
-- Deals Won: ${m.totalWon} (Overall Win Rate: ${m.overallWinRate}% | Target: 20% - 40%)
+CONSOLIDATED OMNI-CHANNEL PIPELINE:
+- Total Outbound Volume: ${m.consolidated.totalOutboundVolume} (Proposals + Connections + Direct Outreach)
+- Total Engagements: ${m.consolidated.totalEngagements} (Upwork Replies + Positive Social Replies + Inbound Leads)
+- Total Qualified Calls Booked: ${m.consolidated.totalQualifiedCalls} (Upwork Interviews + Discovery Calls + Social Calls)
+- Total Deals / Projects Won: ${m.consolidated.totalDealsWon}
+- Overall Qualified Call Booking Rate: ${m.consolidated.overallCallBookingRate}%
+- Overall Closing Rate: ${m.consolidated.overallClosingRate}%
 
-CRM & PIPELINE CALLS:
-- Total Calls Logged: ${m.totalCalls}
-- Intro Calls: ${m.introCalls} | Discovery Calls: ${m.discoveryCalls} | Proposal Calls: ${m.proposalCalls}
-- Inbound Leads: ${m.inboundLeads}
-- Discovery Booking Rate: ${m.introToDiscoveryRate}%
-- Closing / Proposal-to-Win Rate: ${m.proposalToProjectRate}%
+CHANNEL 1: UPWORK TRACKER
+- Proposals Sent: ${m.channels.upwork.proposalsSent} (Target: ${m.focusStrategy === 'upwork' ? '50-150' : '20-50'} across 30 days)
+- Replies: ${m.channels.upwork.replies} (${m.channels.upwork.replyRate}% | Target: 10%-30%)
+- Interviews: ${m.channels.upwork.interviews} (${m.channels.upwork.interviewRate}% | Target: 10%-30%)
+- Closed Won: ${m.channels.upwork.won} (${m.channels.upwork.overallWinRate}% | Target: 20%-40%)
+
+CHANNEL 2: DIRECT SALES & CRM TRACKER
+- Total Calls: ${m.channels.salesCrm.totalCalls} | Intro Calls: ${m.channels.salesCrm.introCalls} | Discovery Calls: ${m.channels.salesCrm.discoveryCalls}
+- Proposal Calls: ${m.channels.salesCrm.proposalCalls} | Inbound Leads: ${m.channels.salesCrm.inboundLeads}
+- Discovery Conversion Rate: ${m.channels.salesCrm.introToDiscoveryRate}%
+- Call-to-Project Conversion Rate: ${m.channels.salesCrm.overallCallConversionRate}%
+
+CHANNEL 3: SOCIAL SELLING TRACKER
+- Connections Sent: ${m.channels.socialSelling.totalConnectionsSent} (Target: ${m.focusStrategy === 'social_selling' ? '50-150' : '20-50'})
+- DMs Sent: ${m.channels.socialSelling.totalDmsSent} (Connection-to-DM Rate: ${m.channels.socialSelling.connectionToDmRate}%)
+- Positive Replies: ${m.channels.socialSelling.totalPositiveReplies} (DM-to-Reply Rate: ${m.channels.socialSelling.dmToReplyRate}% | Target: 15%-35%)
+- Calls Booked from Social: ${m.channels.socialSelling.totalCallsBooked} (Reply-to-Call Rate: ${m.channels.socialSelling.replyToCallRate}% | Target: 20%-40%)
+- Projects Won: ${m.channels.socialSelling.totalProjectsWon}
 
 WEEK-BY-WEEK COHORT PROGRESSION:
 ${weeklySummary}
 
 DAILY CADENCE & VELOCITY:
-- Daily Activity Pace: ${m.currentPaceProposalsPerDay} proposals/day (Need 1.7 - 5.0/day for 50-150 target)
-- Active Day Density: ${m.averageProposalsPerActiveDay} proposals per active day
-- Projected 30-Day Total: ${m.projected30DayProposals} proposals
+- Total Active Days: ${m.activeDaysCount} of ${m.totalDaysInWindow}
+- Daily Outbound Activity Pace: ${m.currentPaceProposalsPerDay} / day
+- Projected 30-Day Outbound Pace: ${m.projected30DayProposals}
 
 ROLES TARGETED:
 ${rolesSummary}
@@ -516,25 +732,25 @@ ${notes || "No additional notes provided."}`;
       pipeline_health: {
         type: "score",
         instructions:
-          "How healthy is the candidate's outreach volume and pipeline momentum compared to the 30-day target of 50-150 outreach contacts?",
+          "How healthy is the candidate's outreach volume and pipeline momentum across their active channels compared to Datalumina 30-day benchmarks?",
         criteria: [
-          "Critical Deficit: Under 15 proposals sent; pipeline starved of statistical volume",
-          "Low Momentum: 15-35 proposals sent; insufficient pipeline velocity to ensure deal closing",
-          "Developing: 35-50 proposals sent; approaching minimum viability but vulnerable to pipeline dry-up",
-          "Strong Momentum: 50-100 proposals sent with regular active daily submissions",
-          "Exceptional Pipeline: 100-150+ proposals sent with aggressive multi-channel pipeline density",
+          "Critical Deficit: Very low activity across all channels; pipeline starved of statistical volume",
+          "Low Momentum: Insufficient pipeline velocity to guarantee deal closing in their chosen focus",
+          "Developing: Moderate outreach approaching minimum viability but vulnerable to pipeline dry-up",
+          "Strong Momentum: Regular active daily submissions meeting benchmark expectations for their focus channel(s)",
+          "Exceptional Pipeline: Aggressive multi-channel pipeline density generating abundant qualified opportunities",
         ],
       },
       funnel_efficiency: {
         type: "score",
         instructions:
-          "How efficiently does the candidate convert proposals into replies (target 10-30%) and interviews (target 10-30%)?",
+          "How efficiently does the candidate convert outreach into positive responses and discovery/strategy calls across active channels?",
         criteria: [
-          "Severely Broken: <5% reply rate; proposals are being systematically ignored or rejected",
-          "Below Benchmark: 5-9% reply rate; weak hooks, lack of credibility proof, or poor job targeting",
-          "Benchmark Viable: 10-19% reply rate; meets Datalumina baseline with solid problem understanding",
-          "High Conversion: 20-29% reply rate; crisp tailored hooks and compelling proof assets",
-          "Elite Conversion: 30%+ reply rate; irresistible consultation offer and precise niche fit",
+          "Severely Broken: <5% response rate; outreach is systematically ignored or rejected across channels",
+          "Below Benchmark: 5-9% response rate; weak hooks, lack of credibility proof, or poor audience targeting",
+          "Benchmark Viable: Meets Datalumina baselines with solid problem understanding and relevant conversation starters",
+          "High Conversion: Crisp tailored hooks and compelling proof assets driving frequent strategy calls",
+          "Elite Conversion: Irresistible consultation offer, high positive reply rate, and rapid conversion to booked calls",
         ],
       },
       attack_discipline: {
@@ -545,7 +761,7 @@ ${notes || "No additional notes provided."}`;
           "Erratic: Long gaps of zero activity; binge outreach followed by multi-day abandonment",
           "Sporadic: Active only 1-2 days per week; lacking consistent daily business development habits",
           "Moderate: Active 3-4 days per week with recognizable effort but intermittent momentum drops",
-          "Consistent: Active 5-6 days per week with steady daily proposal flow and rapid follow-ups",
+          "Consistent: Active 5-6 days per week with steady daily prospecting flow and rapid follow-ups",
           "Relentless: Daily discipline with zero dormant blocks, rapid CRM updates, and consistent outreach",
         ],
       },
@@ -564,14 +780,16 @@ ${notes || "No additional notes provided."}`;
       primary_bottleneck: {
         type: "choice",
         instructions:
-          "What is the single most critical constraint holding back this student from closing high-ticket clients?",
+          "What is the single most critical constraint holding back this student across their active channels from securing high-ticket clients?",
         criteria: {
           outreach_volume_deficit:
-            "Volume deficit: Not enough proposals or outreach messages are being sent to achieve mathematical deal closing",
+            "Volume deficit: Total outbound volume across active channels is insufficient to generate qualified calls",
           proposal_hook_copy:
-            "Proposal hook & copy: Low reply rate indicates weak snippet hooks, generic boilerplate, or lack of proof",
+            "Proposal hook & copy: Low Upwork reply rate indicates weak snippet hooks, generic boilerplate, or lack of proof",
+          social_dm_conversion:
+            "Social DM conversion: Connections or DMs are not converting into positive conversations or booked discovery calls",
           discovery_qualification:
-            "Discovery call booking: Replies are generated but not converting into booked discovery/strategy calls",
+            "Discovery call booking: Inbound leads or positive replies stall before booking a qualified strategy call",
           objection_handling_closing:
             "Objection handling & closing: Calls are taking place but stalling on price, scoping, or lack of closing confidence",
           erratic_cadence:
@@ -583,7 +801,7 @@ ${notes || "No additional notes provided."}`;
       on_track_for_guarantee: {
         type: "noul",
         instructions:
-          "Based on overall conversion metrics, volume trajectory, and discipline, is this student on track to fulfill the 30-day attack performance guarantee and secure client projects?",
+          "Based on overall conversion metrics, volume trajectory, and discipline across active channels, is this student on track to fulfill the 30-day attack performance guarantee and secure client projects?",
         criteria: {
           true: "On track: Activity pace and conversion rates support landing paid client projects within the attack cycle",
           false:

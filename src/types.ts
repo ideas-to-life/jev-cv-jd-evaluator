@@ -102,6 +102,70 @@ export interface CallRow {
   recordingLink?: string;
 }
 
+export interface SocialSellingRow {
+  date: string;
+  connectionsSent?: number;
+  dmsSent?: number;
+  positiveReplies?: number;
+  callsBooked?: number;
+  projectsWon?: number;
+  notes?: string;
+}
+
+export type FocusStrategy = "omni" | "upwork" | "sales_crm" | "social_selling";
+
+export interface UpworkMetrics {
+  proposalsSent: number;
+  replies: number;
+  interviews: number;
+  won: number;
+  replyRate: number; // %
+  interviewRate: number; // %
+  interviewToProjectRate: number; // %
+  overallWinRate: number; // %
+}
+
+export interface SalesCrmMetrics {
+  totalCalls: number;
+  introCalls: number;
+  discoveryCalls: number;
+  proposalCalls: number;
+  inboundLeads: number;
+  introToDiscoveryRate: number; // %
+  discoveryToProposalRate: number; // %
+  proposalToProjectRate: number; // %
+  overallCallConversionRate: number; // %
+  inboundToDiscoveryRate: number; // %
+  topObjections: string[];
+}
+
+export interface SocialSellingMetrics {
+  totalConnectionsSent: number;
+  totalDmsSent: number;
+  totalPositiveReplies: number;
+  totalCallsBooked: number;
+  totalProjectsWon: number;
+  connectionToDmRate: number; // %
+  dmToReplyRate: number; // %
+  replyToCallRate: number; // %
+  callToProjectRate: number; // %
+}
+
+export interface ConsolidatedPipelineMetrics {
+  focusStrategy: FocusStrategy;
+  activeChannels: {
+    upwork: boolean;
+    salesCrm: boolean;
+    socialSelling: boolean;
+  };
+  totalOutboundVolume: number; // Proposals + DMs/Outreach + Connections
+  totalEngagements: number; // Upwork Replies + Positive Social Replies + Inbound Leads
+  totalQualifiedCalls: number; // Upwork Interviews + CRM Discovery/Calls + Social Calls
+  totalDealsWon: number; // Upwork Won + CRM Won + Social Won
+  overallCallBookingRate: number; // Qualified Calls / Outbound Volume %
+  overallClosingRate: number; // Won Deals / Qualified Calls %
+}
+
 export interface AttackWindow {
   startDate: string; // YYYY-MM-DD
   endDate: string; // YYYY-MM-DD (End of current week)
@@ -132,9 +196,27 @@ export interface CohortWeeklyMetrics {
   callsScheduled: number;
   replyRate: number; // percentage 0-100
   interviewRate: number; // percentage 0-100
+  socialConnections?: number;
+  socialDms?: number;
+  socialReplies?: number;
+  socialCalls?: number;
 }
 
 export interface ThirtyDayAttackDeterministicMetrics {
+  focusStrategy: FocusStrategy;
+  activeChannels: {
+    upwork: boolean;
+    salesCrm: boolean;
+    socialSelling: boolean;
+  };
+  channels: {
+    upwork: UpworkMetrics;
+    salesCrm: SalesCrmMetrics;
+    socialSelling: SocialSellingMetrics;
+  };
+  consolidated: ConsolidatedPipelineMetrics;
+
+  // Preserved backwards-compatible root metrics
   totalProposalsSent: number;
   totalReplies: number;
   totalInterviews: number;
@@ -161,6 +243,11 @@ export interface ThirtyDayAttackDeterministicMetrics {
   averageProposalsPerActiveDay: number;
   currentPaceProposalsPerDay: number;
   projected30DayProposals: number;
+  outboundDensityPerActiveDay?: number;
+  currentPaceOutboundPerDay?: number;
+  projected30DayOutbound?: number;
+  cadenceUnit?: string;
+  isMonthlyAggregate?: boolean;
 
   weeklyCohorts: CohortWeeklyMetrics[];
   topObjections: string[];
@@ -168,8 +255,10 @@ export interface ThirtyDayAttackDeterministicMetrics {
 }
 
 export interface ThirtyDayAttackInput {
-  proposals: ProposalRow[];
-  calls: CallRow[];
+  proposals?: ProposalRow[];
+  calls?: CallRow[];
+  socialSelling?: SocialSellingRow[];
+  focusStrategy?: FocusStrategy;
   customTargets?: Partial<Record<string, number>>;
   windowOverride?: {
     startDate?: string;
@@ -187,6 +276,11 @@ export interface ThirtyDayAttackInput {
     discoveryCalls?: number;
     proposalCalls?: number;
     inboundLeads?: number;
+    socialConnections?: number;
+    socialDms?: number;
+    socialReplies?: number;
+    socialCalls?: number;
+    socialWon?: number;
   };
 }
 

@@ -874,22 +874,42 @@ export function getHtmlDashboard(): string {
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
                   <p class="text-xs text-slate-300 font-medium">
-                    Drop your <span class="text-emerald-400 font-semibold">12-Month Workbook (.xlsx)</span> or <span class="text-emerald-400 font-semibold">Activity CSVs</span> here, or <span class="text-emerald-400 underline">browse</span>
+                    Drop your <span class="text-emerald-400 font-semibold">12-Month Workbooks (.xlsx)</span> or <span class="text-emerald-400 font-semibold">Activity CSVs</span> here, or <span class="text-emerald-400 underline">browse</span>
                   </p>
-                  <p class="text-[11px] text-slate-500">Supports multi-tab workbooks (Proposals, Calls, Monthly tabs) and standalone CSV exports.</p>
+                  <p class="text-[11px] text-slate-500">Supports Upwork Tracker, Direct Sales Tracker, and Social Selling Tracker files or multi-tab workbooks.</p>
                 </div>
               </div>
             </div>
 
-            <!-- Upload Status Badges -->
-            <div class="flex flex-wrap items-center gap-3 pt-2">
-              <div id="proposals-loaded-badge" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs font-mono text-slate-400 flex items-center gap-2">
-                <span>📋</span> Proposals Log: <span id="proposals-count-text" class="text-white font-semibold">0 loaded</span>
+            <!-- Focus Strategy Selector & Upload Status Badges -->
+            <div class="space-y-2.5 pt-2">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-900/80 border border-slate-700/80">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-slate-300 font-semibold flex items-center gap-1.5">
+                    <span>🎯</span> Strategy Focus:
+                  </span>
+                  <span class="text-[10px] text-slate-400 hidden sm:inline">(Prioritizes benchmarks for active channels)</span>
+                </div>
+                <select id="focus-strategy-select" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-emerald-500 font-medium">
+                  <option value="omni" selected>🌐 Omni-Channel (All 3 Channels)</option>
+                  <option value="upwork">⚡ Upwork Focus (Proposals & Freelance Bids)</option>
+                  <option value="sales_crm">📞 Direct Sales Focus (Cold Outreach & Inbound CRM)</option>
+                  <option value="social_selling">💬 Social Selling Focus (LinkedIn DMs & Content)</option>
+                </select>
               </div>
-              <div id="calls-loaded-badge" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs font-mono text-slate-400 flex items-center gap-2">
-                <span>📞</span> CRM Calls Log: <span id="calls-count-text" class="text-white font-semibold">0 loaded</span>
+
+              <div class="flex flex-wrap items-center gap-3">
+                <div id="proposals-loaded-badge" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs font-mono text-slate-400 flex items-center gap-2">
+                  <span>📋</span> Upwork: <span id="proposals-count-text" class="text-white font-semibold">0 loaded</span>
+                </div>
+                <div id="calls-loaded-badge" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs font-mono text-slate-400 flex items-center gap-2">
+                  <span>📞</span> CRM Calls: <span id="calls-count-text" class="text-white font-semibold">0 loaded</span>
+                </div>
+                <div id="social-loaded-badge" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs font-mono text-slate-400 flex items-center gap-2">
+                  <span>💬</span> Social Selling: <span id="social-count-text" class="text-white font-semibold">0 loaded</span>
+                </div>
+                <div id="attack-file-pill" class="hidden px-2.5 py-1 rounded-lg bg-emerald-950/60 border border-emerald-800 text-[11px] font-mono text-emerald-300 truncate max-w-full"></div>
               </div>
-              <div id="attack-file-pill" class="hidden px-2.5 py-1 rounded-lg bg-emerald-950/60 border border-emerald-800 text-[11px] font-mono text-emerald-300 truncate max-w-full"></div>
             </div>
           </div>
 
@@ -901,34 +921,34 @@ export function getHtmlDashboard(): string {
                   <span class="w-6 h-6 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-bold">2</span>
                   <h3 class="text-sm font-semibold text-white tracking-wide uppercase">Datalumina Benchmarks</h3>
                 </div>
-                <span class="text-[10px] text-emerald-400 font-mono">Official Baseline</span>
+                <span class="text-[10px] text-emerald-400 font-mono">Channel Targets</span>
               </div>
               <ul class="space-y-2 text-xs">
                 <li class="flex items-center justify-between p-2 rounded-lg bg-slate-900/60 border border-slate-800">
-                  <span class="text-slate-400">Total Outreach:</span>
+                  <span class="text-slate-400">⚡ Upwork Proposals:</span>
                   <span class="font-mono text-slate-200 font-semibold">50 – 150</span>
                 </li>
                 <li class="flex items-center justify-between p-2 rounded-lg bg-slate-900/60 border border-slate-800">
-                  <span class="text-slate-400">Proposal Reply Rate:</span>
+                  <span class="text-slate-400">⚡ Upwork Reply Rate:</span>
                   <span class="font-mono text-emerald-400 font-semibold">10% – 30%</span>
                 </li>
                 <li class="flex items-center justify-between p-2 rounded-lg bg-slate-900/60 border border-slate-800">
-                  <span class="text-slate-400">Interview Rate:</span>
+                  <span class="text-slate-400">⚡ Upwork Interview Rate:</span>
                   <span class="font-mono text-emerald-400 font-semibold">10% – 30%</span>
                 </li>
                 <li class="flex items-center justify-between p-2 rounded-lg bg-slate-900/60 border border-slate-800">
-                  <span class="text-slate-400">Interview & Win Rate:</span>
+                  <span class="text-slate-400">💬 Social DM &rarr; Call:</span>
+                  <span class="font-mono text-indigo-400 font-semibold">10% – 25%</span>
+                </li>
+                <li class="flex items-center justify-between p-2 rounded-lg bg-slate-900/60 border border-slate-800">
+                  <span class="text-slate-400">📞 Discovery &rarr; Closing:</span>
                   <span class="font-mono text-emerald-400 font-semibold">20% – 40%</span>
-                </li>
-                <li class="flex items-center justify-between p-2 rounded-lg bg-slate-900/60 border border-slate-800">
-                  <span class="text-slate-400">Discovery Booking:</span>
-                  <span class="font-mono text-slate-200 font-semibold">100% qual</span>
                 </li>
               </ul>
             </div>
 
             <div class="pt-3 border-t border-slate-700/60 text-[11px] text-slate-400">
-              Targets reflect the Datalumina 30-Day Attack performance guarantee criteria.
+              Auto-calibrated: inactive channels never penalize overall guarantee readiness.
             </div>
           </div>
 
@@ -1083,86 +1103,272 @@ export function getHtmlDashboard(): string {
 
           </div>
 
-          <!-- Deterministic Funnel Waterfall & Metrics Grid -->
+          <!-- Consolidated Executive Pipeline Card -->
+          <div class="bg-gradient-to-br from-slate-900 via-slate-850 to-indigo-950/40 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <span>🌐</span> Consolidated Executive Pipeline Scorecard
+                  </span>
+                  <span id="res-strategy-badge" class="text-[10px] px-2.5 py-0.5 rounded-full bg-indigo-950 border border-indigo-700 text-indigo-300 font-mono">Omni-Channel</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-1">Aggregated pipeline across Upwork, Direct Sales CRM, and Social Selling</p>
+              </div>
+
+              <!-- Channel Activity Badges -->
+              <div id="res-active-channels-badges" class="flex items-center gap-1.5 flex-wrap">
+                <span id="badge-chan-upwork" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-slate-400 font-mono">Upwork</span>
+                <span id="badge-chan-crm" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-slate-400 font-mono">Direct CRM</span>
+                <span id="badge-chan-social" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-slate-400 font-mono">Social Selling</span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1">
+                <div class="text-[11px] text-slate-400 font-medium">Total Outbound Touchpoints</div>
+                <div id="exec-total-outbound" class="text-2xl font-black text-white">0</div>
+                <div class="text-[10px] text-slate-500 font-mono">Proposals + DMs + Outbound</div>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1">
+                <div class="text-[11px] text-slate-400 font-medium">Engagements / Replies</div>
+                <div id="exec-total-engagements" class="text-2xl font-black text-blue-400">0</div>
+                <div class="text-[10px] text-slate-500 font-mono">Replies + Inbound Leads</div>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1">
+                <div class="text-[11px] text-slate-400 font-medium">Qualified Calls Booked</div>
+                <div id="exec-total-calls" class="text-2xl font-black text-indigo-400">0</div>
+                <div id="exec-booking-rate" class="text-[10px] text-indigo-300 font-mono">0% booking rate</div>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1">
+                <div class="text-[11px] text-slate-400 font-medium">Deals Won / Closed</div>
+                <div id="exec-total-won" class="text-2xl font-black text-emerald-400">0</div>
+                <div id="exec-closing-rate" class="text-[10px] text-emerald-300 font-mono">0% closing rate</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Channel Navigation Pills & Waterfalls Container -->
           <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-6">
-            <div class="flex items-center justify-between">
+            
+            <!-- Navigation Header & Channel Pills -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-700/60 pb-4">
               <div>
                 <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                  <span>📊</span> 30-Day Conversion Funnel Waterfall
+                  <span>📊</span> 30-Day Conversion Funnel Waterfalls
                 </h3>
-                <p class="text-xs text-slate-400">Proposals sent &rarr; Replies &rarr; Interviews / Calls &rarr; Closed Won</p>
+                <p class="text-xs text-slate-400">Switch views to inspect channel-specific conversion gates and benchmark ratios</p>
               </div>
-              <span class="text-xs font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-3 py-1 rounded-full">Actual vs Benchmark</span>
+
+              <!-- Channel Pills -->
+              <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+                <button id="pill-chan-all" type="button" class="px-3.5 py-1.5 rounded-xl font-semibold transition flex items-center gap-1.5 bg-blue-600 text-white shadow-md shadow-blue-500/20">
+                  <span>🌐</span> Consolidated
+                </button>
+                <button id="pill-chan-upwork" type="button" class="px-3.5 py-1.5 rounded-xl font-semibold transition flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300">
+                  <span>⚡</span> Upwork
+                </button>
+                <button id="pill-chan-crm" type="button" class="px-3.5 py-1.5 rounded-xl font-semibold transition flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300">
+                  <span>📞</span> Direct CRM
+                </button>
+                <button id="pill-chan-social" type="button" class="px-3.5 py-1.5 rounded-xl font-semibold transition flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300">
+                  <span>💬</span> Social Selling
+                </button>
+              </div>
             </div>
 
-            <!-- 4 Waterfall Steps -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              
-              <!-- 1. Proposals -->
-              <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-2">
-                <span class="text-xs text-slate-400 font-medium">1. Proposals Sent</span>
-                <div class="flex items-baseline justify-between">
-                  <span id="fn-proposals-sent" class="text-2xl font-black text-white">0</span>
-                  <span class="text-xs font-mono text-slate-400">Target: 50-150</span>
-                </div>
-                <div id="fn-proposals-badge" class="text-[11px] font-mono font-semibold"></div>
+            <!-- View 1: Consolidated Funnel -->
+            <div id="view-chan-all" class="space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-slate-400">Aggregated conversion gates across all channels:</span>
+                <span class="text-xs font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-3 py-0.5 rounded-full">Omni Actuals</span>
               </div>
-
-              <!-- 2. Replies -->
-              <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-2">
-                <span class="text-xs text-slate-400 font-medium">2. Replies (Reply Rate)</span>
-                <div class="flex items-baseline justify-between">
-                  <span id="fn-replies" class="text-2xl font-black text-white">0</span>
-                  <span id="fn-reply-rate" class="text-sm font-bold font-mono text-blue-400">0%</span>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-2">
+                  <span class="text-xs text-slate-400 font-medium">1. Outbound Volume</span>
+                  <div class="flex items-baseline justify-between">
+                    <span id="fn-all-outbound" class="text-2xl font-black text-white">0</span>
+                    <span class="text-xs font-mono text-slate-400">Target: 50-150+</span>
+                  </div>
+                  <div class="text-[11px] font-mono text-slate-400">Proposals + DMs + Outbound</div>
                 </div>
-                <div id="fn-reply-badge" class="text-[11px] font-mono font-semibold"></div>
-              </div>
-
-              <!-- 3. Interviews -->
-              <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-2">
-                <span class="text-xs text-slate-400 font-medium">3. Interviews (Interview Rate)</span>
-                <div class="flex items-baseline justify-between">
-                  <span id="fn-interviews" class="text-2xl font-black text-white">0</span>
-                  <span id="fn-interview-rate" class="text-sm font-bold font-mono text-indigo-400">0%</span>
+                <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-2">
+                  <span class="text-xs text-slate-400 font-medium">2. Engagements & Replies</span>
+                  <div class="flex items-baseline justify-between">
+                    <span id="fn-all-engagements" class="text-2xl font-black text-white">0</span>
+                    <span id="fn-all-eng-rate" class="text-sm font-bold font-mono text-blue-400">0%</span>
+                  </div>
+                  <div class="text-[11px] font-mono text-slate-400">Replies & Inbound Leads</div>
                 </div>
-                <div id="fn-interview-badge" class="text-[11px] font-mono font-semibold"></div>
-              </div>
-
-              <!-- 4. Won -->
-              <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-2">
-                <span class="text-xs text-slate-400 font-medium">4. Closed Won Projects</span>
-                <div class="flex items-baseline justify-between">
-                  <span id="fn-won" class="text-2xl font-black text-white">0</span>
-                  <span id="fn-win-rate" class="text-sm font-bold font-mono text-emerald-400">0%</span>
+                <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-2">
+                  <span class="text-xs text-slate-400 font-medium">3. Strategy Calls Booked</span>
+                  <div class="flex items-baseline justify-between">
+                    <span id="fn-all-calls" class="text-2xl font-black text-white">0</span>
+                    <span id="fn-all-call-rate" class="text-sm font-bold font-mono text-indigo-400">0%</span>
+                  </div>
+                  <div class="text-[11px] font-mono text-slate-400">Interviews & Discovery</div>
                 </div>
-                <div id="fn-won-badge" class="text-[11px] font-mono font-semibold"></div>
+                <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-2">
+                  <span class="text-xs text-slate-400 font-medium">4. Closed Deals</span>
+                  <div class="flex items-baseline justify-between">
+                    <span id="fn-all-won" class="text-2xl font-black text-white">0</span>
+                    <span id="fn-all-close-rate" class="text-sm font-bold font-mono text-emerald-400">0%</span>
+                  </div>
+                  <div class="text-[11px] font-mono text-slate-400">Closing / Win Rate</div>
+                </div>
               </div>
-
             </div>
 
-            <!-- CRM Call Sub-Metrics -->
-            <div class="border-t border-slate-700/60 pt-4 grid grid-cols-2 sm:grid-cols-5 gap-3 text-center text-xs">
-              <div class="p-3 bg-slate-900/50 rounded-xl border border-slate-800">
-                <div class="text-slate-500 text-[11px]">Total Calls</div>
-                <div id="crm-total-calls" class="text-base font-bold text-white mt-1">0</div>
+            <!-- View 2: Upwork Funnel -->
+            <div id="view-chan-upwork" class="hidden space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-slate-400">Upwork proposal to contract conversion pipeline:</span>
+                <span class="text-xs font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-3 py-0.5 rounded-full">Upwork Benchmarks</span>
               </div>
-              <div class="p-3 bg-slate-900/50 rounded-xl border border-slate-800">
-                <div class="text-slate-500 text-[11px]">Intro Calls</div>
-                <div id="crm-intro-calls" class="text-base font-bold text-blue-400 mt-1">0</div>
-              </div>
-              <div class="p-3 bg-slate-900/50 rounded-xl border border-slate-800">
-                <div class="text-slate-500 text-[11px]">Discovery Calls</div>
-                <div id="crm-discovery-calls" class="text-base font-bold text-indigo-400 mt-1">0</div>
-              </div>
-              <div class="p-3 bg-slate-900/50 rounded-xl border border-slate-800">
-                <div class="text-slate-500 text-[11px]">Proposal Calls</div>
-                <div id="crm-proposal-calls" class="text-base font-bold text-amber-400 mt-1">0</div>
-              </div>
-              <div class="p-3 bg-slate-900/50 rounded-xl border border-slate-800">
-                <div class="text-slate-500 text-[11px]">Inbound Leads</div>
-                <div id="crm-inbound-leads" class="text-base font-bold text-emerald-400 mt-1">0</div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-2">
+                  <span class="text-xs text-slate-400 font-medium">1. Proposals Sent</span>
+                  <div class="flex items-baseline justify-between">
+                    <span id="fn-proposals-sent" class="text-2xl font-black text-white">0</span>
+                    <span class="text-xs font-mono text-slate-400">Target: 50-150</span>
+                  </div>
+                  <div id="fn-proposals-badge" class="text-[11px] font-mono font-semibold"></div>
+                </div>
+                <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-2">
+                  <span class="text-xs text-slate-400 font-medium">2. Replies (Reply Rate)</span>
+                  <div class="flex items-baseline justify-between">
+                    <span id="fn-replies" class="text-2xl font-black text-white">0</span>
+                    <span id="fn-reply-rate" class="text-sm font-bold font-mono text-blue-400">0%</span>
+                  </div>
+                  <div id="fn-reply-badge" class="text-[11px] font-mono font-semibold"></div>
+                </div>
+                <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-2">
+                  <span class="text-xs text-slate-400 font-medium">3. Interviews (Interview Rate)</span>
+                  <div class="flex items-baseline justify-between">
+                    <span id="fn-interviews" class="text-2xl font-black text-white">0</span>
+                    <span id="fn-interview-rate" class="text-sm font-bold font-mono text-indigo-400">0%</span>
+                  </div>
+                  <div id="fn-interview-badge" class="text-[11px] font-mono font-semibold"></div>
+                </div>
+                <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-2">
+                  <span class="text-xs text-slate-400 font-medium">4. Closed Won Projects</span>
+                  <div class="flex items-baseline justify-between">
+                    <span id="fn-won" class="text-2xl font-black text-white">0</span>
+                    <span id="fn-win-rate" class="text-sm font-bold font-mono text-emerald-400">0%</span>
+                  </div>
+                  <div id="fn-won-badge" class="text-[11px] font-mono font-semibold"></div>
+                </div>
               </div>
             </div>
+
+            <!-- View 3: Direct Sales CRM Funnel -->
+            <div id="view-chan-crm" class="hidden space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-slate-400">B2B direct outreach and CRM call progression:</span>
+                <span class="text-xs font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-3 py-0.5 rounded-full">CRM Funnel</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-2">
+                  <span class="text-xs text-slate-400 font-medium">1. Leads / Inbound</span>
+                  <div class="flex items-baseline justify-between">
+                    <span id="fn-crm-leads" class="text-2xl font-black text-white">0</span>
+                    <span class="text-xs font-mono text-slate-400">CRM Contacts</span>
+                  </div>
+                  <div class="text-[11px] font-mono text-slate-400">Inbound & Direct Leads</div>
+                </div>
+                <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-2">
+                  <span class="text-xs text-slate-400 font-medium">2. Intro Calls</span>
+                  <div class="flex items-baseline justify-between">
+                    <span id="fn-crm-intros" class="text-2xl font-black text-white">0</span>
+                    <span id="fn-crm-intro-rate" class="text-sm font-bold font-mono text-blue-400">0%</span>
+                  </div>
+                  <div class="text-[11px] font-mono text-slate-400">Intro &rarr; Discovery Rate</div>
+                </div>
+                <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-2">
+                  <span class="text-xs text-slate-400 font-medium">3. Discovery Calls</span>
+                  <div class="flex items-baseline justify-between">
+                    <span id="fn-crm-discoveries" class="text-2xl font-black text-white">0</span>
+                    <span id="fn-crm-disc-rate" class="text-sm font-bold font-mono text-indigo-400">0%</span>
+                  </div>
+                  <div class="text-[11px] font-mono text-slate-400">Discovery &rarr; Proposal Rate</div>
+                </div>
+                <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-2">
+                  <span class="text-xs text-slate-400 font-medium">4. Proposal Calls & Won</span>
+                  <div class="flex items-baseline justify-between">
+                    <span id="fn-crm-proposals" class="text-2xl font-black text-white">0</span>
+                    <span id="fn-crm-prop-rate" class="text-sm font-bold font-mono text-emerald-400">0%</span>
+                  </div>
+                  <div class="text-[11px] font-mono text-slate-400">Proposal &rarr; Won Close Rate</div>
+                </div>
+              </div>
+
+              <!-- CRM Call Sub-Metrics -->
+              <div class="border-t border-slate-700/60 pt-4 grid grid-cols-2 sm:grid-cols-5 gap-3 text-center text-xs">
+                <div class="p-3 bg-slate-900/50 rounded-xl border border-slate-800">
+                  <div class="text-slate-500 text-[11px]">Total Calls</div>
+                  <div id="crm-total-calls" class="text-base font-bold text-white mt-1">0</div>
+                </div>
+                <div class="p-3 bg-slate-900/50 rounded-xl border border-slate-800">
+                  <div class="text-slate-500 text-[11px]">Intro Calls</div>
+                  <div id="crm-intro-calls" class="text-base font-bold text-blue-400 mt-1">0</div>
+                </div>
+                <div class="p-3 bg-slate-900/50 rounded-xl border border-slate-800">
+                  <div class="text-slate-500 text-[11px]">Discovery Calls</div>
+                  <div id="crm-discovery-calls" class="text-base font-bold text-indigo-400 mt-1">0</div>
+                </div>
+                <div class="p-3 bg-slate-900/50 rounded-xl border border-slate-800">
+                  <div class="text-slate-500 text-[11px]">Proposal Calls</div>
+                  <div id="crm-proposal-calls" class="text-base font-bold text-amber-400 mt-1">0</div>
+                </div>
+                <div class="p-3 bg-slate-900/50 rounded-xl border border-slate-800">
+                  <div class="text-slate-500 text-[11px]">Inbound Leads</div>
+                  <div id="crm-inbound-leads" class="text-base font-bold text-emerald-400 mt-1">0</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- View 4: Social Selling Funnel -->
+            <div id="view-chan-social" class="hidden space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-slate-400">LinkedIn & social outbound conversion pipeline:</span>
+                <span class="text-xs font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-3 py-0.5 rounded-full">Social Benchmarks</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-2">
+                  <span class="text-xs text-slate-400 font-medium">1. Connections Sent</span>
+                  <div class="flex items-baseline justify-between">
+                    <span id="fn-soc-connections" class="text-2xl font-black text-white">0</span>
+                    <span class="text-xs font-mono text-slate-400">Target: 50-150</span>
+                  </div>
+                  <div class="text-[11px] font-mono text-slate-400">Total Invites / Reaches</div>
+                </div>
+                <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-2">
+                  <span class="text-xs text-slate-400 font-medium">2. DMs Sent</span>
+                  <div class="flex items-baseline justify-between">
+                    <span id="fn-soc-dms" class="text-2xl font-black text-white">0</span>
+                    <span id="fn-soc-dm-rate" class="text-sm font-bold font-mono text-blue-400">0%</span>
+                  </div>
+                  <div class="text-[11px] font-mono text-slate-400">Connection &rarr; DM Rate</div>
+                </div>
+                <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-2">
+                  <span class="text-xs text-slate-400 font-medium">3. Positive Replies</span>
+                  <div class="flex items-baseline justify-between">
+                    <span id="fn-soc-replies" class="text-2xl font-black text-white">0</span>
+                    <span id="fn-soc-reply-rate" class="text-sm font-bold font-mono text-indigo-400">0%</span>
+                  </div>
+                  <div class="text-[11px] font-mono text-slate-400">DM &rarr; Reply (Target: 15-35%)</div>
+                </div>
+                <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-2">
+                  <span class="text-xs text-slate-400 font-medium">4. Calls Booked & Won</span>
+                  <div class="flex items-baseline justify-between">
+                    <span id="fn-soc-calls" class="text-2xl font-black text-white">0</span>
+                    <span id="fn-soc-call-rate" class="text-sm font-bold font-mono text-emerald-400">0%</span>
+                  </div>
+                  <div class="text-[11px] font-mono text-slate-400">Won Projects: <span id="fn-soc-won" class="text-white font-bold">0</span></div>
+                </div>
+              </div>
+            </div>
+
           </div>
 
           <!-- Weekly Cohort Progression & Velocity -->
@@ -1498,64 +1704,70 @@ Enterprise Cloud & AI Solutions Architect\`
           setAttackVipState(isVipUser);
 
           if (data.tier === 'admin') {
-            creditText.textContent = 'Admin (Unlimited)';
-            passcodeLabel.textContent = '👑 Admin Active';
+            if (creditText) creditText.textContent = 'Admin (Unlimited)';
+            if (passcodeLabel) passcodeLabel.textContent = '👑 Admin Active';
           } else if (data.tier === 'vip') {
-            creditText.textContent = \`\${data.remaining} / \${data.limit} daily\`;
-            passcodeLabel.textContent = '⭐ VIP Member';
+            if (creditText) creditText.textContent = (data.remaining != null ? data.remaining : 0) + ' / ' + (data.limit || 15) + ' daily';
+            if (passcodeLabel) passcodeLabel.textContent = '⭐ VIP Member';
           } else {
-            creditText.textContent = \`\${data.remaining} / \${data.limit} daily\`;
-            passcodeLabel.textContent = '🔑 VIP Code';
+            if (creditText) creditText.textContent = (data.remaining != null ? data.remaining : 0) + ' / ' + (data.limit || 3) + ' daily';
+            if (passcodeLabel) passcodeLabel.textContent = '🔑 VIP Code';
           }
         }
       } catch (e) {
-        creditText.textContent = '3 daily';
+        if (creditText) creditText.textContent = '3 daily';
         setAttackVipState(false);
       }
     }
 
     if (attackBannerUnlockBtn) {
       attackBannerUnlockBtn.addEventListener('click', () => {
-        passcodeInput.value = getStoredPasscode();
-        passcodeModal.classList.remove('hidden');
+        if (passcodeInput) passcodeInput.value = getStoredPasscode();
+        if (passcodeModal) passcodeModal.classList.remove('hidden');
       });
     }
 
     if (attackVipIndicator) {
       attackVipIndicator.addEventListener('click', () => {
-        passcodeInput.value = getStoredPasscode();
-        passcodeModal.classList.remove('hidden');
+        if (passcodeInput) passcodeInput.value = getStoredPasscode();
+        if (passcodeModal) passcodeModal.classList.remove('hidden');
       });
     }
 
     if (attackErrorUnlockBtn) {
       attackErrorUnlockBtn.addEventListener('click', () => {
-        passcodeInput.value = getStoredPasscode();
-        passcodeModal.classList.remove('hidden');
+        if (passcodeInput) passcodeInput.value = getStoredPasscode();
+        if (passcodeModal) passcodeModal.classList.remove('hidden');
       });
     }
 
-    passcodeBtn.addEventListener('click', () => {
-      passcodeInput.value = getStoredPasscode();
-      passcodeModal.classList.remove('hidden');
-    });
+    if (passcodeBtn) {
+      passcodeBtn.addEventListener('click', () => {
+        if (passcodeInput) passcodeInput.value = getStoredPasscode();
+        if (passcodeModal) passcodeModal.classList.remove('hidden');
+      });
+    }
 
-    closeModalBtn.addEventListener('click', () => passcodeModal.classList.add('hidden'));
-    cancelModalBtn.addEventListener('click', () => passcodeModal.classList.add('hidden'));
+    if (closeModalBtn) closeModalBtn.addEventListener('click', () => passcodeModal && passcodeModal.classList.add('hidden'));
+    if (cancelModalBtn) cancelModalBtn.addEventListener('click', () => passcodeModal && passcodeModal.classList.add('hidden'));
 
-    savePasscodeBtn.addEventListener('click', async () => {
-      const code = passcodeInput.value.trim();
-      setStoredPasscode(code);
-      passcodeModal.classList.add('hidden');
-      await updateCreditBadge();
-    });
+    if (savePasscodeBtn) {
+      savePasscodeBtn.addEventListener('click', async () => {
+        const code = passcodeInput ? passcodeInput.value.trim() : '';
+        setStoredPasscode(code);
+        if (passcodeModal) passcodeModal.classList.add('hidden');
+        await updateCreditBadge();
+      });
+    }
 
-    clearPasscodeBtn.addEventListener('click', async () => {
-      setStoredPasscode('');
-      passcodeInput.value = '';
-      passcodeModal.classList.add('hidden');
-      await updateCreditBadge();
-    });
+    if (clearPasscodeBtn) {
+      clearPasscodeBtn.addEventListener('click', async () => {
+        setStoredPasscode('');
+        if (passcodeInput) passcodeInput.value = '';
+        if (passcodeModal) passcodeModal.classList.add('hidden');
+        await updateCreditBadge();
+      });
+    }
 
     // Datalumina Disclaimer Modal Listeners
     const disclaimerModal = document.getElementById('datalumina-disclaimer-modal');
@@ -1582,9 +1794,6 @@ Enterprise Cloud & AI Solutions Architect\`
       });
     }
 
-    // On Load: fetch credits
-    updateCreditBadge();
-
     // Tab Switching Logic
     const tabBtnCv = document.getElementById('tab-btn-cv');
     const tabBtnUpwork = document.getElementById('tab-btn-upwork');
@@ -1594,18 +1803,21 @@ Enterprise Cloud & AI Solutions Architect\`
     const tabContentAttack = document.getElementById('tab-content-attack');
 
     function setActiveTab(tab) {
-      tabBtnCv.className = (tab === 'cv' ? 'tab-active' : 'tab-inactive') + ' px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5';
-      tabBtnUpwork.className = (tab === 'upwork' ? 'tab-active' : 'tab-inactive') + ' px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5';
-      tabBtnAttack.className = (tab === 'attack' ? 'tab-active' : 'tab-inactive') + ' px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5';
+      if (tabBtnCv) tabBtnCv.className = (tab === 'cv' ? 'tab-active' : 'tab-inactive') + ' px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5';
+      if (tabBtnUpwork) tabBtnUpwork.className = (tab === 'upwork' ? 'tab-active' : 'tab-inactive') + ' px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5';
+      if (tabBtnAttack) tabBtnAttack.className = (tab === 'attack' ? 'tab-active' : 'tab-inactive') + ' px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5';
 
-      tabContentCv.classList.toggle('hidden', tab !== 'cv');
-      tabContentUpwork.classList.toggle('hidden', tab !== 'upwork');
-      tabContentAttack.classList.toggle('hidden', tab !== 'attack');
+      if (tabContentCv) tabContentCv.classList.toggle('hidden', tab !== 'cv');
+      if (tabContentUpwork) tabContentUpwork.classList.toggle('hidden', tab !== 'upwork');
+      if (tabContentAttack) tabContentAttack.classList.toggle('hidden', tab !== 'attack');
     }
 
-    tabBtnCv.addEventListener('click', () => setActiveTab('cv'));
-    tabBtnUpwork.addEventListener('click', () => setActiveTab('upwork'));
-    tabBtnAttack.addEventListener('click', () => setActiveTab('attack'));
+    if (tabBtnCv) tabBtnCv.addEventListener('click', () => setActiveTab('cv'));
+    if (tabBtnUpwork) tabBtnUpwork.addEventListener('click', () => setActiveTab('upwork'));
+    if (tabBtnAttack) tabBtnAttack.addEventListener('click', () => setActiveTab('attack'));
+
+    // On Load: fetch credits
+    updateCreditBadge();
 
     // Helper: Setup file dropzones
     async function extractTextFromFile(file) {
@@ -2060,9 +2272,19 @@ Enterprise Cloud & AI Solutions Architect\`
       { date: "17/09/2026", name: "Pradeep - EA Lloyds", callType: "Inbound", outcome: "", whatWentWell: "£600 inside IR35 - share CV", objections: "IR35 compliance constraints" }
     ];
 
+    const sampleAttackSocialSelling = [
+      { date: "02/09/2026", connectionsSent: 15, dmsSent: 8, positiveReplies: 3, callsBooked: 1, projectsWon: 0, notes: "LinkedIn outreach on Agentic AI & RAG." },
+      { date: "05/09/2026", connectionsSent: 12, dmsSent: 6, positiveReplies: 2, callsBooked: 0, projectsWon: 0, notes: "Connected with Heads of Data & AI Architects." },
+      { date: "08/09/2026", connectionsSent: 10, dmsSent: 5, positiveReplies: 2, callsBooked: 1, projectsWon: 0, notes: "Discovery call booked with CTO." },
+      { date: "12/09/2026", connectionsSent: 8, dmsSent: 6, positiveReplies: 3, callsBooked: 1, projectsWon: 1, notes: "Closed £3,500 advisory sprint on enterprise LLM governance!" },
+      { date: "16/09/2026", connectionsSent: 14, dmsSent: 7, positiveReplies: 2, callsBooked: 0, projectsWon: 0, notes: "Outreach on LangGraph vs CrewAI architectures." },
+      { date: "18/09/2026", connectionsSent: 10, dmsSent: 4, positiveReplies: 1, callsBooked: 0, projectsWon: 0, notes: "Follow-ups on data readiness assessments." }
+    ];
+
     const attackBottleneckLabels = {
       outreach_volume_deficit: "Pipeline Outreach Volume Deficit",
       proposal_hook_copy: "Proposal Hook & Copy Weakness",
+      social_dm_conversion: "Social Selling DM-to-Call Conversion Gap",
       discovery_qualification: "Discovery Call Booking Gap",
       objection_handling_closing: "Objection Handling & Closing Bottleneck",
       erratic_cadence: "Erratic Cadence & Dormant Gaps",
@@ -2072,6 +2294,7 @@ Enterprise Cloud & AI Solutions Architect\`
     const attackBottleneckContext = {
       outreach_volume_deficit: "Your proposal volume is below the statistical threshold needed to secure client contracts. In the 30-day attack phase, prioritize raising your outreach to 2-3 proposals/day across Upwork, LinkedIn, and warm outreach.",
       proposal_hook_copy: "Your reply rate is lagging below the 10-30% benchmark. Your opening 2 lines and proof assets need sharpening to stop clients from skipping your proposals in their crowded inbox.",
+      social_dm_conversion: "You are generating connections and sending DMs, but falling short on converting positive conversations into booked strategy or discovery calls. Focus on high-value transition scripts and low-friction calendar booking links.",
       discovery_qualification: "You are generating initial replies or clicks, but failing to bridge them into booked strategy/discovery calls. Implement lower-friction conversation starters and direct scheduling links.",
       objection_handling_closing: "You are successfully booking conversations, but prospects stall on price, scope, or next steps. Standardize your productized scoping and upfront deposit terms (40-50%).",
       erratic_cadence: "Your activity occurs in sporadic bursts separated by dormant days. The Datalumina 30-day attack requires sustained daily action momentum.",
@@ -2081,6 +2304,8 @@ Enterprise Cloud & AI Solutions Architect\`
     let attackDataState = {
       proposals: [],
       calls: [],
+      socialSelling: [],
+      focusStrategy: 'omni',
       summaryMetrics: null,
       window: null,
       lastResult: null
@@ -2091,8 +2316,10 @@ Enterprise Cloud & AI Solutions Architect\`
     const attackDropzone = document.getElementById('attack-dropzone');
     const attackFileInput = document.getElementById('attack-file-input');
     const attackFilePill = document.getElementById('attack-file-pill');
+    const focusStrategySelect = document.getElementById('focus-strategy-select');
     const proposalsCountText = document.getElementById('proposals-count-text');
     const callsCountText = document.getElementById('calls-count-text');
+    const socialCountText = document.getElementById('social-count-text');
     const attackWindowDisplay = document.getElementById('attack-window-display');
     const toggleWindowOverrideBtn = document.getElementById('toggle-window-override-btn');
     const windowOverrideDrawer = document.getElementById('window-override-drawer');
@@ -2107,29 +2334,86 @@ Enterprise Cloud & AI Solutions Architect\`
     const copyAttackReportBtn = document.getElementById('copy-attack-report-btn');
     const downloadAttackJsonBtn = document.getElementById('download-attack-json-btn');
 
+    // Channel Pills & View elements
+    const pillChanAll = document.getElementById('pill-chan-all');
+    const pillChanUpwork = document.getElementById('pill-chan-upwork');
+    const pillChanCrm = document.getElementById('pill-chan-crm');
+    const pillChanSocial = document.getElementById('pill-chan-social');
+
+    const viewChanAll = document.getElementById('view-chan-all');
+    const viewChanUpwork = document.getElementById('view-chan-upwork');
+    const viewChanCrm = document.getElementById('view-chan-crm');
+    const viewChanSocial = document.getElementById('view-chan-social');
+
+    function selectChannelView(channel) {
+      const views = { all: viewChanAll, upwork: viewChanUpwork, crm: viewChanCrm, social: viewChanSocial };
+      const pills = { all: pillChanAll, upwork: pillChanUpwork, crm: pillChanCrm, social: pillChanSocial };
+      Object.keys(views).forEach(ch => {
+        if (views[ch]) views[ch].classList.toggle('hidden', ch !== channel);
+        if (pills[ch]) {
+          if (ch === channel) {
+            pills[ch].className = 'px-3.5 py-1.5 rounded-xl font-semibold transition flex items-center gap-1.5 bg-blue-600 text-white shadow-md shadow-blue-500/20';
+          } else {
+            pills[ch].className = 'px-3.5 py-1.5 rounded-xl font-semibold transition flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300';
+          }
+        }
+      });
+    }
+
+    [pillChanAll, pillChanUpwork, pillChanCrm, pillChanSocial].forEach(pill => {
+      if (pill) {
+        pill.addEventListener('click', () => {
+          const ch = pill.id.replace('pill-chan-', '');
+          selectChannelView(ch);
+        });
+      }
+    });
+
+    if (focusStrategySelect) {
+      focusStrategySelect.addEventListener('change', () => {
+        attackDataState.focusStrategy = focusStrategySelect.value;
+      });
+    }
+
     // Helper: Normalize date in browser
     function clientNormalizeDate(dateVal) {
       if (!dateVal) return null;
-      if (typeof dateVal === 'number' && !isNaN(dateVal)) {
+      const num = Number(dateVal);
+      if (!isNaN(num) && num >= 30000 && num <= 65000) {
         const excelEpoch = new Date(Date.UTC(1899, 11, 30));
-        const jsDate = new Date(excelEpoch.getTime() + dateVal * 86400000);
+        const jsDate = new Date(excelEpoch.getTime() + num * 86400000);
         if (!isNaN(jsDate.getTime())) return jsDate.toISOString().split('T')[0];
       }
       const str = String(dateVal).trim();
       if (!str) return null;
-      if (/^\\d{4}-\\d{2}-\\d{2}$/.test(str)) return str;
-      const slashMatch = str.match(/^(\\d{1,2})\\/(\\d{1,2})\\/(\\d{4})$/);
-      if (slashMatch) {
-        const p1 = parseInt(slashMatch[1], 10);
-        const p2 = parseInt(slashMatch[2], 10);
-        const y = parseInt(slashMatch[3], 10);
-        let day = p1;
-        let month = p2;
-        if (p2 > 12 && p1 <= 12) { month = p1; day = p2; }
-        return \`\${y}-\${String(month).padStart(2, '0')}-\${String(day).padStart(2, '0')}\`;
+      if (str.length === 10 && str.charAt(4) === '-' && str.charAt(7) === '-') return str;
+      if (str.includes('/')) {
+        const parts = str.split('/');
+        if (parts.length === 3) {
+          const p1 = parseInt(parts[0], 10);
+          const p2 = parseInt(parts[1], 10);
+          const y = parseInt(parts[2], 10);
+          if (!isNaN(p1) && !isNaN(p2) && !isNaN(y) && y >= 2000 && y <= 2050) {
+            let day = p1;
+            let month = p2;
+            if (p2 > 12 && p1 <= 12) { month = p1; day = p2; }
+            return y + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+          }
+        }
+      }
+      const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+      const lower = str.toLowerCase();
+      const mIdx = monthNames.findIndex(m => lower === m || lower.startsWith(m));
+      if (mIdx >= 0 && str.length <= 15) {
+        const yMatch = str.match(/(202[0-9])/);
+        const yr = yMatch ? yMatch[1] : '2026';
+        return yr + '-' + String(mIdx + 1).padStart(2, '0') + '-15';
       }
       const parsed = new Date(str);
-      if (!isNaN(parsed.getTime())) return parsed.toISOString().split('T')[0];
+      if (!isNaN(parsed.getTime())) {
+        const y = parsed.getFullYear();
+        if (y >= 2000 && y <= 2050) return parsed.toISOString().split('T')[0];
+      }
       return null;
     }
 
@@ -2144,6 +2428,7 @@ Enterprise Cloud & AI Solutions Architect\`
       const allDates = [];
       attackDataState.proposals.forEach(p => { const d = clientNormalizeDate(p.date); if (d) allDates.push(d); });
       attackDataState.calls.forEach(c => { const d = clientNormalizeDate(c.date); if (d) allDates.push(d); });
+      attackDataState.socialSelling.forEach(s => { const d = clientNormalizeDate(s.date); if (d) allDates.push(d); });
 
       let refDateStr = new Date().toISOString().split('T')[0];
       if (allDates.length > 0) {
@@ -2165,12 +2450,15 @@ Enterprise Cloud & AI Solutions Architect\`
     }
 
     function refreshAttackStateUI() {
-      proposalsCountText.textContent = \`\${attackDataState.proposals.length} loaded\`;
-      callsCountText.textContent = \`\${attackDataState.calls.length} loaded\`;
+      if (proposalsCountText) proposalsCountText.textContent = \`\${attackDataState.proposals.length} loaded\`;
+      if (callsCountText) callsCountText.textContent = \`\${attackDataState.calls.length} loaded\`;
+      if (socialCountText) socialCountText.textContent = \`\${attackDataState.socialSelling.length} loaded\`;
 
       const win = computeClientAttackWindow();
       attackDataState.window = win;
-      attackWindowDisplay.textContent = \`\${win.startDate}  \u2192  \${win.endDate}  (Trailing 30-day window ending at Current Week)\`;
+      if (attackWindowDisplay) {
+        attackWindowDisplay.textContent = \`\${win.startDate}  \u2192  \${win.endDate}  (Trailing 30-day window ending at Current Week)\`;
+      }
 
       if (!customStartDateInput.value) customStartDateInput.value = win.startDate;
       if (!customEndDateInput.value) customEndDateInput.value = win.endDate;
@@ -2187,10 +2475,13 @@ Enterprise Cloud & AI Solutions Architect\`
     loadSampleAttackBtn.addEventListener('click', () => {
       attackDataState.proposals = JSON.parse(JSON.stringify(sampleAttackProposals));
       attackDataState.calls = JSON.parse(JSON.stringify(sampleAttackCalls));
+      attackDataState.socialSelling = JSON.parse(JSON.stringify(sampleAttackSocialSelling));
+      attackDataState.focusStrategy = 'omni';
+      if (focusStrategySelect) focusStrategySelect.value = 'omni';
       customStartDateInput.value = '';
       customEndDateInput.value = '';
       attackFilePill.classList.remove('hidden');
-      attackFilePill.textContent = '⚡ Datalumina 30-Day Attack Sample Dataset Active';
+      attackFilePill.textContent = '⚡ Datalumina 30-Day Attack Sample Dataset Active (Omni-Channel)';
       refreshAttackStateUI();
       attackResultsSection.classList.add('hidden');
       attackErrorBanner.classList.add('hidden');
@@ -2200,8 +2491,11 @@ Enterprise Cloud & AI Solutions Architect\`
     clearAttackBtn.addEventListener('click', () => {
       attackDataState.proposals = [];
       attackDataState.calls = [];
+      attackDataState.socialSelling = [];
       attackDataState.summaryMetrics = null;
       attackDataState.lastResult = null;
+      attackDataState.focusStrategy = 'omni';
+      if (focusStrategySelect) focusStrategySelect.value = 'omni';
       customStartDateInput.value = '';
       customEndDateInput.value = '';
       attackFilePill.classList.add('hidden');
@@ -2228,6 +2522,41 @@ Enterprise Cloud & AI Solutions Architect\`
       );
     }
 
+    // Number or boolean parser for count cells
+    function parseCountOrBool(val) {
+      if (typeof val === 'number') {
+        if (isNaN(val) || !isFinite(val)) return 0;
+        if (val > 0 && val < 1) return 0;
+        return Math.round(val);
+      }
+      if (val === true) return 1;
+      if (!val) return 0;
+      const s = String(val).trim().toLowerCase();
+      if (s === 'true' || s === 'yes' || s === 'y' || s === 'x' || s === '✔' || s === '✓' || s === 'checked') return 1;
+      if (s.includes('%') || s.includes('/') || s.includes(':')) return 0;
+      const num = parseFloat(s.replace(/,/g, '').trim());
+      if (isNaN(num) || !isFinite(num) || (num > 0 && num < 1)) return 0;
+      return Math.round(num);
+    }
+
+    // Strict count parser for summary / KPI cards (rejects fractions, decimals < 1, and percentages)
+    function parseCountValue(raw) {
+      if (raw === null || raw === undefined) return null;
+      if (typeof raw === 'number') {
+        if (isNaN(raw) || !isFinite(raw)) return null;
+        if (raw > 0 && raw < 1) return null; // Percentage / ratio in Excel (e.g. 0.3333 = 33.3%)
+        return Math.round(raw);
+      }
+      const s = String(raw).trim();
+      if (!s) return null;
+      if (s.includes('%') || s.includes('/') || s.includes(':')) return null;
+      const clean = s.replace(/,/g, '').trim();
+      const n = Number(clean);
+      if (isNaN(n) || !isFinite(n)) return null;
+      if (n > 0 && n < 1) return null;
+      return Math.round(n);
+    }
+
     // SheetJS Workbook and CSV Parser
     async function processAttackFiles(fileList) {
       if (!fileList || fileList.length === 0) return;
@@ -2238,6 +2567,7 @@ Enterprise Cloud & AI Solutions Architect\`
 
       let newProposals = [];
       let newCalls = [];
+      let newSocialSelling = [];
       let combinedSummary = {};
       const fileNames = [];
 
@@ -2261,41 +2591,79 @@ Enterprise Cloud & AI Solutions Architect\`
           const rows = window.XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
           if (!rows || rows.length < 2) return;
 
+          const isSocialSheet = sheetName.toLowerCase().includes('social') ||
+            sheetName.toLowerCase().includes('linkedin') ||
+            file.name.toLowerCase().includes('social') ||
+            rows.some(r => Array.isArray(r) && r.some(c => {
+              const s = String(c || '').toLowerCase();
+              return s.includes('connection') || s.includes('dms sent') || s.includes('calls booked');
+            }));
+
           // 1. Extract summary / totals cards anywhere in the sheet (e.g. Dashboard sheet or side-by-side Totals)
           for (let r = 0; r < rows.length; r++) {
             const row = rows[r];
             if (!row || !Array.isArray(row)) continue;
             for (let c = 0; c < row.length - 1; c++) {
               const cellLbl = String(row[c] || '').trim().toLowerCase();
-              const valStr = String(row[c + 1] || '').trim();
-              const digits = valStr.replace(/[^0-9]/g, '');
-              if (digits && digits.length > 0) {
-                const num = parseInt(digits, 10);
-                if (cellLbl.includes('total proposal') || cellLbl === 'proposals sent') {
-                  combinedSummary.proposals = num;
-                } else if (cellLbl.includes('total repl') || cellLbl === 'replies') {
-                  combinedSummary.replies = num;
-                } else if (cellLbl.includes('total interview') || cellLbl === 'interviews') {
-                  combinedSummary.interviews = num;
-                } else if (cellLbl.includes('total won') || cellLbl.includes('closed won')) {
-                  combinedSummary.won = num;
-                } else if (cellLbl.includes('total call')) {
-                  combinedSummary.calls = num;
-                } else if (cellLbl.includes('total intro') || cellLbl.includes('intro call')) {
-                  combinedSummary.introCalls = num;
-                } else if (cellLbl.includes('total discovery') || cellLbl.includes('discovery call')) {
-                  combinedSummary.discoveryCalls = num;
-                } else if (cellLbl.includes('total proposal call') || cellLbl.includes('proposal call')) {
-                  combinedSummary.proposalCalls = num;
-                } else if (cellLbl.includes('total inbound') || cellLbl.includes('inbound email') || cellLbl.includes('inbound lead')) {
-                  combinedSummary.inboundLeads = num;
-                }
+              if (!cellLbl) continue;
+
+              // Filter out conversion rates, ratios, percentages, and benchmarks from count extraction
+              const isRateOrConversion =
+                cellLbl.includes(' to ') ||
+                cellLbl.includes('to discovery') ||
+                cellLbl.includes('to proposal') ||
+                cellLbl.includes('to project') ||
+                cellLbl.includes('rate') ||
+                cellLbl.includes('%') ||
+                cellLbl.includes('percent') ||
+                cellLbl.includes('conversion') ||
+                cellLbl.includes('ratio') ||
+                cellLbl.includes('avg') ||
+                cellLbl.includes('average') ||
+                cellLbl.includes('benchmark');
+
+              if (isRateOrConversion) continue;
+
+              const valRaw = row[c + 1];
+              const num = parseCountValue(valRaw);
+              if (num === null) continue;
+
+              if (cellLbl.includes('total proposal') || cellLbl === 'proposals sent' || cellLbl === 'proposals') {
+                combinedSummary.proposals = num;
+              } else if (cellLbl.includes('total repl') || cellLbl === 'replies' || cellLbl === 'replied') {
+                combinedSummary.replies = num;
+              } else if (cellLbl.includes('total interview') || cellLbl === 'interviews') {
+                combinedSummary.interviews = num;
+              } else if (cellLbl.includes('total won') || cellLbl.includes('closed won') || cellLbl === 'deals won') {
+                if (isSocialSheet) combinedSummary.socialWon = num;
+                else combinedSummary.won = num;
+              } else if (cellLbl.includes('call booked') || cellLbl.includes('calls booked') || cellLbl.includes('meeting booked')) {
+                combinedSummary.socialCalls = num;
+              } else if (cellLbl.includes('total call') || cellLbl === 'calls') {
+                if (isSocialSheet) combinedSummary.socialCalls = num;
+                else combinedSummary.calls = num;
+              } else if (cellLbl.includes('total intro') || cellLbl === 'intro calls' || cellLbl === 'intros') {
+                combinedSummary.introCalls = num;
+              } else if (cellLbl.includes('total discovery') || cellLbl === 'discovery calls' || cellLbl === 'discoveries') {
+                combinedSummary.discoveryCalls = num;
+              } else if (cellLbl.includes('total proposal call') || cellLbl === 'proposal calls') {
+                combinedSummary.proposalCalls = num;
+              } else if (cellLbl.includes('total inbound') || cellLbl.includes('inbound email') || cellLbl.includes('inbound lead') || cellLbl === 'inbound') {
+                combinedSummary.inboundLeads = num;
+              } else if (cellLbl.includes('connection')) {
+                combinedSummary.socialConnections = num;
+              } else if (cellLbl.includes('dm') || cellLbl.includes('inmail') || (isSocialSheet && cellLbl.includes('message'))) {
+                combinedSummary.socialDms = num;
+              } else if (cellLbl.includes('positive repl') || cellLbl.includes('positive response')) {
+                combinedSummary.socialReplies = num;
+              } else if (cellLbl.includes('total project') || cellLbl.includes('project won') || (isSocialSheet && (cellLbl.includes('won') || cellLbl.includes('closed')))) {
+                combinedSummary.socialWon = num;
               }
             }
           }
 
           // 2. High-Confidence Header Detection
-          const candidateKeywords = ['date', 'job', 'url', 'proposal', 'reply', 'replies', 'interview', 'won', 'name', 'call', 'outcome'];
+          const candidateKeywords = ['date', 'job', 'url', 'proposal', 'reply', 'replies', 'interview', 'won', 'name', 'call', 'outcome', 'connection', 'dm', 'positive'];
           let bestHdrIdx = 0;
           let maxScore = 0;
           for (let r = 0; r < Math.min(10, rows.length); r++) {
@@ -2317,14 +2685,14 @@ Enterprise Cloud & AI Solutions Architect\`
           const headers = rows[bestHdrIdx].map(c => String(c || '').trim().toLowerCase());
 
           // Skip pure overview sheets like "Dashboard" that have no individual logs
-          const isDashboardSheet = sheetName.toLowerCase().includes('dashboard') || sheetName.toLowerCase().includes('overview');
-          const hasIndividualLogs = headers.some(h => h.includes('url') || h.includes('job') || h.includes('what went well') || h.includes('recording'));
+          const isDashboardSheet = sheetName.toLowerCase().includes('dashboard') || sheetName.toLowerCase().includes('overview') || sheetName.toLowerCase().includes('benchmark');
+          const hasIndividualLogs = headers.some(h => h.includes('url') || h.includes('job') || h.includes('what went well') || h.includes('recording') || h.includes('dm') || h.includes('connection'));
           if (isDashboardSheet && !hasIndividualLogs) {
             return;
           }
 
           // Locate Proposal Columns
-          const pDateCol = headers.findIndex(h => h.includes('date') || h === 'day');
+          const pDateCol = headers.findIndex(h => h.includes('date') || h === 'day' || h.includes('month') || h.includes('period') || h === 'wk' || h.includes('week'));
           const jobCol = headers.findIndex(h => h.includes('job') || h.includes('role') || h.includes('title') || h.includes('opportunity') || h.includes('client'));
           const urlCol = headers.findIndex(h => h.includes('url') || h.includes('link'));
           const replyCol = headers.findIndex(h => h.includes('reply') || h.includes('replied') || h.includes('response') || h.includes('replies'));
@@ -2341,12 +2709,22 @@ Enterprise Cloud & AI Solutions Architect\`
           }
           if (cDateCol === -1) cDateCol = pDateCol;
 
-          const nameCol = headers.findIndex(h => h.includes('name') || h.includes('lead') || h.includes('contact') || h.includes('prospect'));
+          const nameCol = headers.findIndex(h => h.includes('name') || h.includes('lead') || h.includes('contact') || h.includes('prospect') || h.includes('client') || h.includes('company') || h.includes('account') || h.includes('person'));
           const typeCol = headers.findIndex((h, idx) => (h.includes('type') || h.includes('call')) && !h.includes('total') && idx !== jobCol);
           const outcomeCol = headers.findIndex(h => h.includes('outcome') || h.includes('status') || h.includes('result'));
           const wellCol = headers.findIndex(h => h.includes('well') || h.includes('comment') || h.includes('notes'));
           const improveCol = headers.findIndex(h => h.includes('improve') || h.includes('feedback'));
           const objectionsCol = headers.findIndex(h => h.includes('objection') || h.includes('pushback') || h.includes('concern'));
+
+          // Locate Social Selling Columns
+          const connCol = headers.findIndex(h => h.includes('connect') || h.includes('invite') || h.includes('reach'));
+          const dmCol = headers.findIndex(h => h.includes('dm') || h.includes('message') || h.includes('inmail') || h.includes('outreach'));
+          const sReplyCol = headers.findIndex(h => h.includes('positive') || (isSocialSheet && (h.includes('repl') || h.includes('respon'))));
+          const sCallCol = headers.findIndex(h => h.includes('call booked') || h.includes('calls booked') || (isSocialSheet && (h.includes('call') || h.includes('meeting') || h.includes('booked'))));
+          const sWonCol = headers.findIndex(h => h.includes('project') || (isSocialSheet && (h.includes('won') || h.includes('deal'))));
+          const sNotesCol = headers.findIndex(h => h.includes('note') || h.includes('comment') || h.includes('lead') || h.includes('target'));
+
+          const hasSocialCols = connCol >= 0 || dmCol >= 0 || sReplyCol >= 0 || (isSocialSheet && sCallCol >= 0);
 
           for (let r = bestHdrIdx + 1; r < rows.length; r++) {
             const row = rows[r];
@@ -2394,6 +2772,32 @@ Enterprise Cloud & AI Solutions Architect\`
                 });
               }
             }
+
+            // Extract Social Selling Row
+            if (hasSocialCols && pDateCol >= 0) {
+              const sdVal = String(row[pDateCol] || '').trim();
+              const isSummarySocial = ['total', 'rate', 'sum', 'average', 'conversion'].some(kw => sdVal.toLowerCase().includes(kw));
+              if (sdVal && !isSummarySocial) {
+                const connVal = parseCountOrBool(connCol >= 0 ? row[connCol] : 0);
+                const dmVal = parseCountOrBool(dmCol >= 0 ? row[dmCol] : 0);
+                const repVal = parseCountOrBool(sReplyCol >= 0 ? row[sReplyCol] : 0);
+                const callVal = parseCountOrBool(sCallCol >= 0 ? row[sCallCol] : 0);
+                const wonVal = parseCountOrBool(sWonCol >= 0 ? row[sWonCol] : 0);
+                const notesVal = String(sNotesCol >= 0 ? row[sNotesCol] || '' : '').trim();
+
+                if (connVal > 0 || dmVal > 0 || repVal > 0 || callVal > 0 || wonVal > 0 || notesVal) {
+                  newSocialSelling.push({
+                    date: sdVal,
+                    connectionsSent: connVal,
+                    dmsSent: dmVal,
+                    positiveReplies: repVal,
+                    callsBooked: callVal,
+                    projectsWon: wonVal,
+                    notes: notesVal
+                  });
+                }
+              }
+            }
           }
         });
       }
@@ -2431,6 +2835,10 @@ Enterprise Cloud & AI Solutions Architect\`
         attackDataState.calls = newCalls;
       }
 
+      if (newSocialSelling.length > 0) {
+        attackDataState.socialSelling = newSocialSelling;
+      }
+
       attackDataState.summaryMetrics = combinedSummary;
 
       attackFilePill.classList.remove('hidden');
@@ -2457,7 +2865,7 @@ Enterprise Cloud & AI Solutions Architect\`
 
     // Run 30-Day Attack Evaluation
     evaluateAttackBtn.addEventListener('click', async () => {
-      if (attackDataState.proposals.length === 0 && attackDataState.calls.length === 0) {
+      if (attackDataState.proposals.length === 0 && attackDataState.calls.length === 0 && attackDataState.socialSelling.length === 0) {
         alert('Please drop your tracking files or click "⚡ Load Datalumina Attack Sample" first.');
         return;
       }
@@ -2486,6 +2894,8 @@ Enterprise Cloud & AI Solutions Architect\`
         const payload = {
           proposals: attackDataState.proposals,
           calls: attackDataState.calls,
+          socialSelling: attackDataState.socialSelling,
+          focusStrategy: (focusStrategySelect ? focusStrategySelect.value : attackDataState.focusStrategy) || 'omni',
           summaryMetrics: attackDataState.summaryMetrics || undefined,
           windowOverride: (customStartDateInput.value && customEndDateInput.value) ? {
             startDate: customStartDateInput.value,
@@ -2501,7 +2911,7 @@ Enterprise Cloud & AI Solutions Architect\`
 
         if (!res.ok) {
           const errData = await res.json().catch(() => null);
-          const errText = errData?.error || \`HTTP \${res.status}\`;
+          const errText = errData?.error || ('HTTP ' + res.status);
           if (res.status === 403 || errData?.vipRequired) {
             if (attackErrorUnlockBtn) attackErrorUnlockBtn.classList.remove('hidden');
           }
@@ -2558,10 +2968,43 @@ Enterprise Cloud & AI Solutions Architect\`
         guaranteeBadge.className = 'px-4 py-1.5 rounded-xl font-bold text-sm tracking-wide bg-amber-950/80 border border-amber-500 text-amber-300 shadow-lg shadow-amber-900/30';
       }
 
-      guaranteeConf.textContent = confPercent !== null ? \`\${confPercent}% model confidence\` : '';
-      document.getElementById('attack-res-window').textContent = \`\${windowInfo.startDate || '--'} to \${windowInfo.endDate || '--'}\`;
-      document.getElementById('attack-res-activedays').textContent = \`\${m.activeDaysCount || 0} / \${m.totalDaysInWindow || 30} days\`;
-      document.getElementById('attack-res-pace').textContent = \`\${m.currentPaceProposalsPerDay || 0} /day\`;
+      guaranteeConf.textContent = confPercent !== null ? (confPercent + '% model confidence') : '';
+      document.getElementById('attack-res-window').textContent = (windowInfo.startDate || '--') + ' to ' + (windowInfo.endDate || '--');
+      document.getElementById('attack-res-activedays').textContent = (m.activeDaysCount || 0) + ' / ' + (m.totalDaysInWindow || 30) + ' days';
+      document.getElementById('attack-res-pace').textContent = (m.currentPaceProposalsPerDay || 0) + ' /day';
+
+      // 1b. Strategy & Channel Activity Badges
+      const stratBadge = document.getElementById('res-strategy-badge');
+      const stratMap = {
+        omni: 'Omni-Channel (All 3 Channels)',
+        upwork: 'Upwork Focus',
+        sales_crm: 'Direct Sales Focus',
+        social_selling: 'Social Selling Focus'
+      };
+      if (stratBadge) {
+        stratBadge.textContent = stratMap[m.focusStrategy] || m.focusStrategy || 'Omni-Channel';
+      }
+
+      const actChans = m.activeChannels || { upwork: true, salesCrm: false, socialSelling: false };
+      const bUpwork = document.getElementById('badge-chan-upwork');
+      const bCrm = document.getElementById('badge-chan-crm');
+      const bSocial = document.getElementById('badge-chan-social');
+
+      if (bUpwork) {
+        bUpwork.className = actChans.upwork
+          ? 'text-[10px] px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-600 text-emerald-300 font-mono'
+          : 'text-[10px] px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-500 font-mono opacity-60';
+      }
+      if (bCrm) {
+        bCrm.className = actChans.salesCrm
+          ? 'text-[10px] px-2 py-0.5 rounded-full bg-indigo-950/80 border border-indigo-600 text-indigo-300 font-mono'
+          : 'text-[10px] px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-500 font-mono opacity-60';
+      }
+      if (bSocial) {
+        bSocial.className = actChans.socialSelling
+          ? 'text-[10px] px-2 py-0.5 rounded-full bg-purple-950/80 border border-purple-600 text-purple-300 font-mono'
+          : 'text-[10px] px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-500 font-mono opacity-60';
+      }
 
       // 2. Primary Bottleneck
       const bottleneckChoice = answers.primary_bottleneck?.choice || 'outreach_volume_deficit';
@@ -2577,18 +3020,18 @@ Enterprise Cloud & AI Solutions Architect\`
         const displayScore = score5 > 0 ? score5.toFixed(1) : '--';
         const percent = Math.min(100, Math.max(0, (hasZeroIndex || rawScore <= 4 ? (rawScore / 4) : (rawScore / 5)) * 100));
 
-        const conf = item?.confidence ? \`\${Math.round(item.confidence * 100)}% conf\` : '';
+        const conf = item?.confidence ? (Math.round(item.confidence * 100) + '% conf') : '';
         const colors = getScoreColor(score5);
 
         const valEl = document.getElementById(valId);
         valEl.textContent = displayScore;
-        valEl.className = \`text-3xl font-extrabold \${colors.text}\`;
+        valEl.className = 'text-3xl font-extrabold ' + colors.text;
 
         document.getElementById(confId).textContent = conf;
 
         const bar = document.getElementById(barId);
-        bar.style.width = \`\${percent}%\`;
-        bar.className = \`h-2.5 rounded-full transition-all duration-700 \${colors.bar}\`;
+        bar.style.width = percent + '%';
+        bar.className = 'h-2.5 rounded-full transition-all duration-700 ' + colors.bar;
 
         let desc = 'Assessment completed.';
         const roundedIdx = Math.round(rawScore);
@@ -2603,21 +3046,60 @@ Enterprise Cloud & AI Solutions Architect\`
       setScoreCard('attack_discipline', 'score-disc-val', 'score-disc-conf', 'bar-disc', 'desc-disc');
       setScoreCard('positioning_and_targeting', 'score-pos-val', 'score-pos-conf', 'bar-pos', 'desc-pos');
 
-      // 4. Deterministic Funnel
-      document.getElementById('fn-proposals-sent').textContent = m.totalProposalsSent ?? 0;
+      // 4. Consolidated Executive Pipeline Card
+      const cons = m.consolidated || {
+        totalOutboundVolume: m.totalProposalsSent || 0,
+        totalEngagements: m.totalReplies || 0,
+        totalQualifiedCalls: m.totalInterviews || 0,
+        totalDealsWon: m.totalWon || 0,
+        overallCallBookingRate: m.interviewRate || 0,
+        overallClosingRate: m.overallWinRate || 0
+      };
+
+      document.getElementById('exec-total-outbound').textContent = cons.totalOutboundVolume ?? 0;
+      document.getElementById('exec-total-engagements').textContent = cons.totalEngagements ?? 0;
+      document.getElementById('exec-total-calls').textContent = cons.totalQualifiedCalls ?? 0;
+      document.getElementById('exec-booking-rate').textContent = (cons.overallCallBookingRate ?? 0) + '% booking rate';
+      document.getElementById('exec-total-won').textContent = cons.totalDealsWon ?? 0;
+      document.getElementById('exec-closing-rate').textContent = (cons.overallClosingRate ?? 0) + '% closing rate';
+
+      // 5. View 1: Consolidated Funnel Waterfall
+      document.getElementById('fn-all-outbound').textContent = cons.totalOutboundVolume ?? 0;
+      document.getElementById('fn-all-engagements').textContent = cons.totalEngagements ?? 0;
+      const allEngRate = cons.totalOutboundVolume > 0 ? Math.round((cons.totalEngagements / cons.totalOutboundVolume) * 1000) / 10 : 0;
+      document.getElementById('fn-all-eng-rate').textContent = allEngRate + '%';
+
+      document.getElementById('fn-all-calls').textContent = cons.totalQualifiedCalls ?? 0;
+      document.getElementById('fn-all-call-rate').textContent = (cons.overallCallBookingRate ?? 0) + '%';
+
+      document.getElementById('fn-all-won').textContent = cons.totalDealsWon ?? 0;
+      document.getElementById('fn-all-close-rate').textContent = (cons.overallClosingRate ?? 0) + '%';
+
+      // 6. View 2: Upwork Funnel Waterfall
+      const up = m.channels?.upwork || {
+        proposalsSent: m.totalProposalsSent || 0,
+        replies: m.totalReplies || 0,
+        replyRate: m.replyRate || 0,
+        interviews: m.totalInterviews || 0,
+        interviewRate: m.interviewRate || 0,
+        won: m.totalWon || 0,
+        overallWinRate: m.overallWinRate || 0
+      };
+
+      document.getElementById('fn-proposals-sent').textContent = up.proposalsSent ?? 0;
       const propBadge = document.getElementById('fn-proposals-badge');
-      if (m.totalProposalsSent >= 50) {
+      if (up.proposalsSent >= 50) {
         propBadge.textContent = '✓ Target met (50-150)';
         propBadge.className = 'text-[11px] font-mono text-emerald-400';
       } else {
-        propBadge.textContent = \`⚠ Deficit (- \${50 - (m.totalProposalsSent || 0)} to min target)\`;
+        propBadge.textContent = '⚠ Deficit (- ' + Math.max(0, 50 - (up.proposalsSent || 0)) + ' to min target)';
         propBadge.className = 'text-[11px] font-mono text-amber-400';
       }
 
-      document.getElementById('fn-replies').textContent = m.totalReplies ?? 0;
-      document.getElementById('fn-reply-rate').textContent = \`\${m.replyRate ?? 0}%\`;
+      document.getElementById('fn-replies').textContent = up.replies ?? 0;
+      document.getElementById('fn-reply-rate').textContent = (up.replyRate ?? 0) + '%';
       const replyBadge = document.getElementById('fn-reply-badge');
-      if (m.replyRate >= 10) {
+      if (up.replyRate >= 10) {
         replyBadge.textContent = '✓ Within 10-30% Benchmark';
         replyBadge.className = 'text-[11px] font-mono text-emerald-400';
       } else {
@@ -2625,10 +3107,10 @@ Enterprise Cloud & AI Solutions Architect\`
         replyBadge.className = 'text-[11px] font-mono text-amber-400';
       }
 
-      document.getElementById('fn-interviews').textContent = m.totalInterviews ?? 0;
-      document.getElementById('fn-interview-rate').textContent = \`\${m.interviewRate ?? 0}%\`;
+      document.getElementById('fn-interviews').textContent = up.interviews ?? 0;
+      document.getElementById('fn-interview-rate').textContent = (up.interviewRate ?? 0) + '%';
       const intBadge = document.getElementById('fn-interview-badge');
-      if (m.interviewRate >= 10) {
+      if (up.interviewRate >= 10) {
         intBadge.textContent = '✓ Within 10-30% Benchmark';
         intBadge.className = 'text-[11px] font-mono text-emerald-400';
       } else {
@@ -2636,10 +3118,10 @@ Enterprise Cloud & AI Solutions Architect\`
         intBadge.className = 'text-[11px] font-mono text-amber-400';
       }
 
-      document.getElementById('fn-won').textContent = m.totalWon ?? 0;
-      document.getElementById('fn-win-rate').textContent = \`\${m.overallWinRate ?? 0}%\`;
+      document.getElementById('fn-won').textContent = up.won ?? 0;
+      document.getElementById('fn-win-rate').textContent = (up.overallWinRate ?? 0) + '%';
       const wonBadge = document.getElementById('fn-won-badge');
-      if (m.totalWon >= 1) {
+      if (up.won >= 1) {
         wonBadge.textContent = '✓ Deal Closed';
         wonBadge.className = 'text-[11px] font-mono text-emerald-400';
       } else {
@@ -2647,40 +3129,106 @@ Enterprise Cloud & AI Solutions Architect\`
         wonBadge.className = 'text-[11px] font-mono text-slate-400';
       }
 
-      // CRM Sub-Metrics
-      document.getElementById('crm-total-calls').textContent = m.totalCalls ?? 0;
-      document.getElementById('crm-intro-calls').textContent = m.introCalls ?? 0;
-      document.getElementById('crm-discovery-calls').textContent = m.discoveryCalls ?? 0;
-      document.getElementById('crm-proposal-calls').textContent = m.proposalCalls ?? 0;
-      document.getElementById('crm-inbound-leads').textContent = m.inboundLeads ?? 0;
+      // 7. View 3: Direct Sales CRM Funnel
+      const crm = m.channels?.salesCrm || {
+        totalCalls: m.totalCalls || 0,
+        introCalls: m.introCalls || 0,
+        discoveryCalls: m.discoveryCalls || 0,
+        proposalCalls: m.proposalCalls || 0,
+        inboundLeads: m.inboundLeads || 0,
+        introToDiscoveryRate: 0,
+        discoveryToProposalRate: 0,
+        proposalToProjectRate: 0
+      };
 
-      // 5. Weekly Cohort Cards
+      document.getElementById('fn-crm-leads').textContent = crm.inboundLeads ?? 0;
+      document.getElementById('fn-crm-intros').textContent = crm.introCalls ?? 0;
+      document.getElementById('fn-crm-intro-rate').textContent = (crm.introToDiscoveryRate ?? 0) + '% to discovery';
+      document.getElementById('fn-crm-discoveries').textContent = crm.discoveryCalls ?? 0;
+      document.getElementById('fn-crm-disc-rate').textContent = (crm.discoveryToProposalRate ?? 0) + '% to proposal';
+      document.getElementById('fn-crm-proposals').textContent = crm.proposalCalls ?? 0;
+      document.getElementById('fn-crm-prop-rate').textContent = (crm.proposalToProjectRate ?? 0) + '% close rate';
+
+      // CRM Sub-Metrics
+      document.getElementById('crm-total-calls').textContent = crm.totalCalls ?? 0;
+      document.getElementById('crm-intro-calls').textContent = crm.introCalls ?? 0;
+      document.getElementById('crm-discovery-calls').textContent = crm.discoveryCalls ?? 0;
+      document.getElementById('crm-proposal-calls').textContent = crm.proposalCalls ?? 0;
+      document.getElementById('crm-inbound-leads').textContent = crm.inboundLeads ?? 0;
+
+      // 8. View 4: Social Selling Funnel
+      const soc = m.channels?.socialSelling || {
+        totalConnectionsSent: 0,
+        totalDmsSent: 0,
+        totalPositiveReplies: 0,
+        totalCallsBooked: 0,
+        totalProjectsWon: 0,
+        connectionToDmRate: 0,
+        dmToReplyRate: 0,
+        replyToCallRate: 0,
+        callToProjectRate: 0
+      };
+
+      document.getElementById('fn-soc-connections').textContent = soc.totalConnectionsSent ?? 0;
+      document.getElementById('fn-soc-dms').textContent = soc.totalDmsSent ?? 0;
+      document.getElementById('fn-soc-dm-rate').textContent = (soc.connectionToDmRate ?? 0) + '%';
+      document.getElementById('fn-soc-replies').textContent = soc.totalPositiveReplies ?? 0;
+      document.getElementById('fn-soc-reply-rate').textContent = (soc.dmToReplyRate ?? 0) + '%';
+      document.getElementById('fn-soc-calls').textContent = soc.totalCallsBooked ?? 0;
+      document.getElementById('fn-soc-call-rate').textContent = (soc.replyToCallRate ?? 0) + '%';
+      document.getElementById('fn-soc-won').textContent = soc.totalProjectsWon ?? 0;
+
+      // 9. Initial View Selection based on Focus Strategy
+      if (m.focusStrategy === 'upwork') selectChannelView('upwork');
+      else if (m.focusStrategy === 'sales_crm') selectChannelView('crm');
+      else if (m.focusStrategy === 'social_selling') selectChannelView('social');
+      else selectChannelView('all');
+
+      // 10. Weekly Cohort Cards
       const cohortsContainer = document.getElementById('weekly-cohorts-container');
       cohortsContainer.innerHTML = '';
       (m.weeklyCohorts || []).forEach((w, idx) => {
         const card = document.createElement('div');
         card.className = 'bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-2';
-        card.innerHTML = \`
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-white">\${w.weekLabel}</span>
-            <span class="text-[10px] font-mono text-slate-400">\${w.startDate.slice(5)} to \${w.endDate.slice(5)}</span>
-          </div>
-          <div class="space-y-1 text-xs">
-            <div class="flex justify-between"><span class="text-slate-400">Proposals:</span><span class="font-mono text-white font-semibold">\${w.proposalsSent}</span></div>
-            <div class="flex justify-between"><span class="text-slate-400">Replies:</span><span class="font-mono text-blue-400 font-semibold">\${w.replies} (\${w.replyRate}%)</span></div>
-            <div class="flex justify-between"><span class="text-slate-400">Interviews:</span><span class="font-mono text-indigo-400 font-semibold">\${w.interviews}</span></div>
-            <div class="flex justify-between"><span class="text-slate-400">Calls / CRM:</span><span class="font-mono text-amber-400 font-semibold">\${w.callsScheduled}</span></div>
-            <div class="flex justify-between"><span class="text-slate-400">Won:</span><span class="font-mono text-emerald-400 font-semibold">\${w.dealsWon}</span></div>
-          </div>
-        \`;
+        const isSocialCohort = (w.socialDms || 0) > 0 || (w.socialReplies || 0) > 0;
+        const totalWeekRep = (w.replies || 0) + (w.socialReplies || 0);
+
+        let linesHtml = '';
+        if (w.proposalsSent > 0 || !isSocialCohort) {
+          linesHtml += '<div class="flex justify-between"><span class="text-slate-400">Proposals:</span><span class="font-mono text-white font-semibold">' + (w.proposalsSent || 0) + '</span></div>';
+        }
+        if (w.socialDms || w.socialConnections) {
+          linesHtml += '<div class="flex justify-between"><span class="text-slate-400">Social DMs:</span><span class="font-mono text-purple-400 font-semibold">' + (w.socialDms || 0) + '</span></div>';
+        }
+        if (w.socialReplies) {
+          const sRepRate = w.socialDms ? Math.round((w.socialReplies / w.socialDms) * 100) : 0;
+          linesHtml += '<div class="flex justify-between"><span class="text-slate-400">Social Replies:</span><span class="font-mono text-blue-400 font-semibold">' + w.socialReplies + ' (' + sRepRate + '%)</span></div>';
+        }
+        if (w.proposalsSent > 0 && !w.socialReplies) {
+          linesHtml += '<div class="flex justify-between"><span class="text-slate-400">Replies:</span><span class="font-mono text-blue-400 font-semibold">' + (w.replies || 0) + ' (' + (w.replyRate || 0) + '%)</span></div>';
+        } else if (w.proposalsSent > 0 && w.socialReplies) {
+          linesHtml += '<div class="flex justify-between"><span class="text-slate-400">Total Engagements:</span><span class="font-mono text-blue-400 font-semibold">' + totalWeekRep + '</span></div>';
+        }
+        if (w.interviews > 0 || (!isSocialCohort && w.proposalsSent > 0)) {
+          linesHtml += '<div class="flex justify-between"><span class="text-slate-400">Interviews:</span><span class="font-mono text-indigo-400 font-semibold">' + (w.interviews || 0) + '</span></div>';
+        }
+        linesHtml += '<div class="flex justify-between"><span class="text-slate-400">Calls / CRM:</span><span class="font-mono text-amber-400 font-semibold">' + (w.callsScheduled || 0) + '</span></div>';
+        linesHtml += '<div class="flex justify-between"><span class="text-slate-400">Won:</span><span class="font-mono text-emerald-400 font-semibold">' + (w.dealsWon || 0) + '</span></div>';
+
+        card.innerHTML = 
+          '<div class="flex items-center justify-between">' +
+            '<span class="text-xs font-bold text-white">' + w.weekLabel + '</span>' +
+            '<span class="text-[10px] font-mono text-slate-400">' + w.startDate.slice(5) + ' to ' + w.endDate.slice(5) + '</span>' +
+          '</div>' +
+          '<div class="space-y-1 text-xs">' + linesHtml + '</div>';
         cohortsContainer.appendChild(card);
       });
 
       // 6. Cadence Metrics
-      document.getElementById('cadence-active-days').textContent = \`\${m.activeDaysCount || 0} / \${m.totalDaysInWindow || 30} days\`;
-      document.getElementById('cadence-dormant-days').textContent = \`\${m.zeroActivityDaysCount || 0} dormant days\`;
-      document.getElementById('cadence-density').textContent = \`\${m.averageProposalsPerActiveDay || 0} proposals / active day\`;
-      document.getElementById('cadence-projected').textContent = \`\${m.projected30DayProposals || 0} total proposals projected\`;
+      document.getElementById('cadence-active-days').textContent = (m.activeDaysCount || 0) + ' / ' + (m.totalDaysInWindow || 30) + ' days';
+      document.getElementById('cadence-dormant-days').textContent = (m.zeroActivityDaysCount || 0) + ' dormant days';
+      document.getElementById('cadence-density').textContent = (m.averageProposalsPerActiveDay || 0) + ' proposals / active day';
+      document.getElementById('cadence-projected').textContent = (m.projected30DayProposals || 0) + ' total proposals projected';
 
       // 7. Objections & Sample Roles
       const objectionsList = document.getElementById('objections-list');
@@ -2689,7 +3237,7 @@ Enterprise Cloud & AI Solutions Architect\`
         m.topObjections.forEach(obj => {
           const el = document.createElement('div');
           el.className = 'p-2 rounded-lg bg-slate-950 border border-slate-800 text-rose-300 text-xs font-mono';
-          el.textContent = \`\u2022 "\${obj}"\`;
+          el.textContent = '• "' + obj + '"';
           objectionsList.appendChild(el);
         });
       } else {
@@ -2716,31 +3264,30 @@ Enterprise Cloud & AI Solutions Architect\`
       const coachingSteps = [
         {
           num: 1,
-          title: "Scale Daily Proposal Density to 3-5 Submissions / Day",
-          desc: \`Your current velocity is \${m.currentPaceProposalsPerDay} proposals/day, which projects to \${m.projected30DayProposals} across 30 days (target: 50-150). Dedicate a 90-minute daily morning block to submit 3 tailored proposals before checking email.\`
+          title: "Scale Daily Outbound Density across Active Channels",
+          desc: "Your current pace is " + (m.currentPaceProposalsPerDay || 0) + " touchpoints/day, projecting to " + (m.projected30DayProposals || 0) + " across 30 days (benchmark: 50-150). Protect a 90-minute daily morning sprint to submit proposals and send outreach before context switching."
         },
         {
           num: 2,
           title: "Protect Conversion from Reply to Discovery Call",
-          desc: \`Your reply rate is \${m.replyRate}% (Datalumina benchmark: 10-30%). When a client replies, respond within 15 minutes with a frictionless 2-option booking link and a specific technical hypothesis about their project.\`
+          desc: "Your reply rate is " + (m.replyRate || 0) + "% (Datalumina benchmark: 10-30%). When a client or lead replies, respond within 15 minutes with a frictionless booking link and a specific technical hypothesis about their data/AI stack."
         },
         {
           num: 3,
           title: "Structure Discovery Calls into 40-50% Upfront Paid Pilots",
-          desc: \`During discovery calls, avoid general open-ended consulting. Guide them through your productized assessment framework, and require a 40-50% upfront deposit to initiate milestone delivery.\`
+          desc: "During discovery calls, avoid open-ended consulting without commitments. Standardize your productized architecture/advisory sprint and require a 40-50% deposit before kickoff."
         }
       ];
 
       coachingSteps.forEach(step => {
         const item = document.createElement('div');
         item.className = 'p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 flex items-start gap-3';
-        item.innerHTML = \`
-          <span class="w-6 h-6 rounded-lg bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center flex-shrink-0 text-xs">\${step.num}</span>
-          <div>
-            <h5 class="text-xs font-bold text-white">\${step.title}</h5>
-            <p class="text-xs text-slate-400 mt-1 leading-relaxed">\${step.desc}</p>
-          </div>
-        \`;
+        item.innerHTML = 
+          '<span class="w-6 h-6 rounded-lg bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center flex-shrink-0 text-xs">' + step.num + '</span>' +
+          '<div>' +
+            '<h5 class="text-xs font-bold text-white">' + step.title + '</h5>' +
+            '<p class="text-xs text-slate-400 mt-1 leading-relaxed">' + step.desc + '</p>' +
+          '</div>';
         coachingContainer.appendChild(item);
       });
 
@@ -2759,36 +3306,37 @@ Enterprise Cloud & AI Solutions Architect\`
       const m = res.deterministicMetrics || {};
       const jev = res.jevEvaluation?.result?.answers || res.jevEvaluation?.answers || {};
 
-      const md = \`# Datalumina 30-Day Freelancer Attack Evaluation Report
-**Evaluated Window:** \${win.startDate} to \${win.endDate} (Trailing 30 days to Current Week)
-**Active Days:** \${m.activeDaysCount} / \${m.totalDaysInWindow} days | **Dormant Days:** \${m.zeroActivityDaysCount} days
-**Guarantee Status:** \${jev.on_track_for_guarantee?.noul >= 0.5 || jev.on_track_for_guarantee?.answer ? "ON TRACK" : "AT RISK / INTERVENTION REQUIRED"}
-**Primary Bottleneck:** \${attackBottleneckLabels[jev.primary_bottleneck?.choice] || jev.primary_bottleneck?.choice}
+      const mdLines = [
+        '# Datalumina 30-Day Freelancer Attack Evaluation Report',
+        '**Evaluated Window:** ' + win.startDate + ' to ' + win.endDate + ' (Trailing 30 days to Current Week)',
+        '**Active Days:** ' + (m.activeDaysCount || 0) + ' / ' + (m.totalDaysInWindow || 30) + ' days | **Dormant Days:** ' + (m.zeroActivityDaysCount || 0) + ' days',
+        '**Strategy Focus:** ' + (m.focusStrategy || 'omni'),
+        '**Guarantee Status:** ' + ((jev.on_track_for_guarantee?.noul >= 0.5 || jev.on_track_for_guarantee?.answer) ? "ON TRACK" : "AT RISK / INTERVENTION REQUIRED"),
+        '**Primary Bottleneck:** ' + (attackBottleneckLabels[jev.primary_bottleneck?.choice] || jev.primary_bottleneck?.choice || 'None'),
+        '',
+        '## Consolidated Executive Funnel',
+        '- **Total Outbound Volume:** ' + (m.consolidated?.totalOutboundVolume || m.totalProposalsSent || 0),
+        '- **Total Engagements:** ' + (m.consolidated?.totalEngagements || m.totalReplies || 0),
+        '- **Total Qualified Calls:** ' + (m.consolidated?.totalQualifiedCalls || m.totalInterviews || 0) + ' (' + (m.consolidated?.overallCallBookingRate || m.interviewRate || 0) + '% booking rate)',
+        '- **Total Deals Won:** ' + (m.consolidated?.totalDealsWon || m.totalWon || 0) + ' (' + (m.consolidated?.overallClosingRate || m.overallWinRate || 0) + '% closing rate)',
+        '',
+        '## Channel Specifics',
+        '- Upwork: ' + (m.channels?.upwork?.proposalsSent || m.totalProposalsSent || 0) + ' proposals, ' + (m.channels?.upwork?.replies || m.totalReplies || 0) + ' replies, ' + (m.channels?.upwork?.interviews || m.totalInterviews || 0) + ' interviews, ' + (m.channels?.upwork?.won || m.totalWon || 0) + ' won',
+        '- Sales CRM: ' + (m.channels?.salesCrm?.totalCalls || m.totalCalls || 0) + ' calls, ' + (m.channels?.salesCrm?.discoveryCalls || m.discoveryCalls || 0) + ' discovery calls',
+        '- Social Selling: ' + (m.channels?.socialSelling?.totalConnectionsSent || 0) + ' connections, ' + (m.channels?.socialSelling?.totalDmsSent || 0) + ' DMs, ' + (m.channels?.socialSelling?.totalCallsBooked || 0) + ' calls booked',
+        '',
+        '## Weekly Cohort Progression'
+      ];
+      (m.weeklyCohorts || []).forEach(w => {
+        mdLines.push('- ' + w.weekLabel + ' (' + w.startDate + ' - ' + w.endDate + '): ' + w.proposalsSent + ' proposals, ' + w.replies + ' replies (' + w.replyRate + '%), ' + w.interviews + ' interviews, ' + w.callsScheduled + ' calls, ' + w.dealsWon + ' won');
+      });
+      mdLines.push('');
+      mdLines.push('## Next Best Actions');
+      mdLines.push('1. Target 3-5 daily outbound actions during the morning sprint.');
+      mdLines.push('2. Respond to client replies within 15 minutes with direct scheduling links.');
+      mdLines.push('3. Structure discovery calls around productized scoping and a 40-50% upfront deposit.');
 
-## Funnel Waterfall vs Datalumina Benchmarks
-- **Proposals Sent:** \${m.totalProposalsSent} (Target: 50-150 across 30 days)
-- **Replies:** \${m.totalReplies} (\${m.replyRate}% | Benchmark: 10% - 30%)
-- **Interviews:** \${m.totalInterviews} (\${m.interviewRate}% | Benchmark: 10% - 30%)
-- **Closed Deals Won:** \${m.totalWon} (\${m.overallWinRate}% | Benchmark: 20% - 40%)
-
-## CRM & Call Pipeline
-- Total Calls: \${m.totalCalls} | Intro: \${m.introCalls} | Discovery: \${m.discoveryCalls} | Proposal: \${m.proposalCalls}
-- Inbound Leads: \${m.inboundLeads}
-
-## Qualitative Dimension Scores (Jev AI)
-- Pipeline Health: \${jev.pipeline_health?.score !== undefined ? (jev.pipeline_health.score + 1) : "--"}/5
-- Funnel Conversion Efficiency: \${jev.funnel_efficiency?.score !== undefined ? (jev.funnel_efficiency.score + 1) : "--"}/5
-- Attack Discipline & Cadence: \${jev.attack_discipline?.score !== undefined ? (jev.attack_discipline.score + 1) : "--"}/5
-- Positioning & Role Fit: \${jev.positioning_and_targeting?.score !== undefined ? (jev.positioning_and_targeting.score + 1) : "--"}/5
-
-## Weekly Cohort Progression
-\${(m.weeklyCohorts || []).map(w => \`- \${w.weekLabel} (\${w.startDate} - \${w.endDate}): \${w.proposalsSent} sent, \${w.replies} replies (\${w.replyRate}%), \${w.interviews} interviews, \${w.callsScheduled} calls, \${w.dealsWon} won\`).join('\\n')}
-
-## Next Best Actions
-1. Target 3-5 daily proposal submissions during the active morning sprint.
-2. Respond to client replies within 15 minutes with direct scheduling links.
-3. Structure discovery calls around productized scoping and a 40-50% upfront deposit.
-\`;
+      const md = mdLines.join(String.fromCharCode(10));
 
       navigator.clipboard.writeText(md).then(() => {
         copyAttackReportBtn.textContent = '✓ Copied Markdown Report!';

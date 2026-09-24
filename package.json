@@ -8,8 +8,9 @@
     "types": "wrangler types"
   },
   "devDependencies": {
-    "wrangler": "latest",
+    "@cloudflare/workers-types": "latest",
+    "@types/node": "^26.6.2",
     "typescript": "latest",
-    "@cloudflare/workers-types": "latest"
+    "wrangler": "^4.138.0"
   }
 }

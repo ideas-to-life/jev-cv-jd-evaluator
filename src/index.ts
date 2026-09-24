@@ -468,10 +468,10 @@ export default {
 
       const body = await req.json<ThirtyDayAttackInput>();
 
-      if (!body.proposals && !body.calls) {
+      if (!body.proposals && !body.calls && !body.socialSelling) {
         return new Response(
           JSON.stringify({
-            error: "At least one of 'proposals' or 'calls' arrays is required.",
+            error: "At least one of 'proposals', 'calls', or 'socialSelling' is required.",
           }),
           { status: 400, headers: { "Content-Type": "application/json" } }
         );
