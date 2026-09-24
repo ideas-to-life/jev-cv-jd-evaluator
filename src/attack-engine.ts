@@ -114,39 +114,65 @@ export function isTruthyMetric(val: unknown): boolean {
 /**
  * Normalizes loose dates (e.g. "9/9/2026", "01/09/2026", "2026-09-09", Excel serials) into YYYY-MM-DD
  */
-export function normalizeDate(dateVal: unknown): string | null {
-  if (!dateVal) return null;
+export function normalizeDate(dateVal: unknown, sheetContext?: string): string | null {
+  if (dateVal === null || dateVal === undefined || dateVal === "") return null;
 
-  // If number or numeric string (Excel serial timestamp, e.g. 46288 or "46288")
-  const num = Number(dateVal);
-  if (!isNaN(num) && num >= 30000 && num <= 65000) {
-    const excelEpoch = new Date(Date.UTC(1899, 11, 30));
-    const jsDate = new Date(excelEpoch.getTime() + num * 86400000);
-    if (!isNaN(jsDate.getTime())) {
-      return jsDate.toISOString().split("T")[0];
+  // 1. Date object (native or SheetJS parsed)
+  if (dateVal instanceof Date || (typeof dateVal === "object" && typeof (dateVal as Date).getTime === "function")) {
+    const d = dateVal as Date;
+    if (!isNaN(d.getTime())) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    }
+  }
+
+  // 2. Numeric / Excel serial timestamp or day-of-month
+  const num = typeof dateVal === "number"
+    ? dateVal
+    : (typeof dateVal === "string" && /^\d+(\.\d+)?$/.test(dateVal.trim()) ? Number(dateVal.trim()) : NaN);
+
+  if (!isNaN(num)) {
+    // Excel serial dates (approx 1982 to 2078)
+    if (num >= 30000 && num <= 65000) {
+      const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+      const jsDate = new Date(excelEpoch.getTime() + Math.floor(num) * 86400000);
+      if (!isNaN(jsDate.getTime())) {
+        return jsDate.toISOString().split("T")[0];
+      }
+    }
+    // Day of month (1-31) within a monthly sheet context (e.g. September)
+    if (num >= 1 && num <= 31) {
+      const monthNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+      const sLower = (sheetContext || "").toLowerCase();
+      let mIdx = monthNames.findIndex(m => sLower.includes(m));
+      if (mIdx === -1) mIdx = 8; // Default to September if context not specified
+      const yrMatch = sLower.match(/\b(202\d)\b/);
+      const yr = yrMatch ? yrMatch[1] : "2026";
+      const mStr = String(mIdx + 1).padStart(2, "0");
+      const dStr = String(Math.floor(num)).padStart(2, "0");
+      return `${yr}-${mStr}-${dStr}`;
     }
   }
 
   const str = String(dateVal).trim();
   if (!str) return null;
 
-  // Match YYYY-MM-DD
+  // 3. YYYY-MM-DD
   if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
     return str;
   }
 
-  // Match D/M/YYYY or DD/MM/YYYY or M/D/YYYY
-  const slashMatch = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (slashMatch) {
-    const p1 = parseInt(slashMatch[1], 10);
-    const p2 = parseInt(slashMatch[2], 10);
-    const y = parseInt(slashMatch[3], 10);
-    // If p1 > 12, it must be DD/MM/YYYY
-    // Otherwise standard UK/EU date DD/MM/YYYY convention commonly used in Datalumina tracker
+  // 4. DD/MM/YYYY, MM/DD/YYYY, DD-MM-YYYY, DD.MM.YYYY
+  const delimMatch = str.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+  if (delimMatch) {
+    const p1 = parseInt(delimMatch[1], 10);
+    const p2 = parseInt(delimMatch[2], 10);
+    const y = parseInt(delimMatch[3], 10);
     let day = p1;
     let month = p2;
     if (p2 > 12 && p1 <= 12) {
-      // It's MM/DD/YYYY
       month = p1;
       day = p2;
     }
@@ -155,8 +181,20 @@ export function normalizeDate(dateVal: unknown): string | null {
     return `${y}-${mStr}-${dStr}`;
   }
 
-  // Match 3-letter or full month name (e.g. "Jan", "Feb", "Sep", "September", etc.)
+  // 5. D-Mon-YYYY or D-Mon (e.g. 9-Sep-2026, 9-Sep)
   const monthNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+  const dMonMatch = str.match(/^(\d{1,2})[\/\-\.\s]+([a-zA-Z]{3,9})(?:[\/\-\.\s]+(\d{4}))?$/);
+  if (dMonMatch) {
+    const day = parseInt(dMonMatch[1], 10);
+    const mName = dMonMatch[2].toLowerCase();
+    const mIdx = monthNames.findIndex(m => mName.startsWith(m));
+    const yr = dMonMatch[3] || "2026";
+    if (mIdx >= 0 && day >= 1 && day <= 31) {
+      return `${yr}-${String(mIdx + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    }
+  }
+
+  // 6. Match 3-letter or full month name (e.g. "Jan", "Feb", "Sep", "September", etc.)
   const lower = str.toLowerCase();
   const mMatch = monthNames.findIndex(m => lower === m || lower.startsWith(m));
   if (mMatch >= 0 && str.length <= 15) {
@@ -166,12 +204,14 @@ export function normalizeDate(dateVal: unknown): string | null {
     return `${yr}-${monthNum}-15`;
   }
 
-  // General JS parse attempt (only accept realistic calendar years 2000-2050)
+  // 7. General JS parse attempt (only accept realistic calendar years 2000-2050)
   const parsed = new Date(str);
   if (!isNaN(parsed.getTime())) {
     const y = parsed.getFullYear();
     if (y >= 2000 && y <= 2050) {
-      return parsed.toISOString().split("T")[0];
+      const m = String(parsed.getMonth() + 1).padStart(2, "0");
+      const d = String(parsed.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
     }
   }
 
@@ -498,7 +538,7 @@ export function computeAttackMetrics(
 
   // Consolidated Pipeline Totals
   const totalOutboundVolume =
-    totalProposalsSent + totalConnectionsSent + (introCalls + inboundLeads);
+    totalProposalsSent + totalConnectionsSent + totalDmsSent + introCalls + inboundLeads;
   const totalEngagements = totalReplies + totalPositiveReplies + inboundLeads;
   const totalQualifiedCalls = totalInterviews + discoveryCalls + totalCallsBooked;
   const totalDealsWon = totalWon + totalSocialWon;
@@ -526,6 +566,34 @@ export function computeAttackMetrics(
     activeDaysCount > 0 ? totalProposalsSent / activeDaysCount : 0;
   const currentPaceProposalsPerDay = totalProposalsSent / totalDaysInWindow;
   const projected30DayProposals = Math.round(currentPaceProposalsPerDay * 30);
+
+  // Channel-aware outbound cadence
+  // If activity is logged as a monthly summary (e.g. 1 entry with high volume like 86 DMs),
+  // flag it as monthly aggregate so the UI does not unfairly treat it as 1 day of work and 29 dormant days.
+  const isMonthlyAggregate = activeDaysCount <= 2 && totalOutboundVolume >= 15;
+
+  let cadenceUnit = "proposals";
+  let primaryOutbound = totalProposalsSent;
+
+  if (focusStrategy === "social_selling") {
+    cadenceUnit = totalDmsSent > 0 ? "DMs" : "outreach";
+    primaryOutbound = totalDmsSent > 0 ? totalDmsSent : totalConnectionsSent;
+  } else if (focusStrategy === "sales_crm") {
+    cadenceUnit = "calls";
+    primaryOutbound = introCalls + inboundLeads + discoveryCalls;
+  } else if (focusStrategy === "omni") {
+    cadenceUnit = "actions";
+    primaryOutbound = totalOutboundVolume;
+  }
+
+  const effectiveActiveDays = isMonthlyAggregate ? 20 : activeDaysCount;
+  const outboundDensityPerActiveDay = effectiveActiveDays > 0
+    ? Math.round((primaryOutbound / effectiveActiveDays) * 10) / 10
+    : 0;
+  const currentPaceOutboundPerDay = Math.round((primaryOutbound / totalDaysInWindow) * 10) / 10;
+  const projected30DayOutbound = isMonthlyAggregate
+    ? primaryOutbound
+    : Math.round(currentPaceOutboundPerDay * 30);
 
   // Weekly cohort breakdowns (divide window into 4 cohorts)
   const windowStart = new Date(window.startDate);
@@ -637,6 +705,11 @@ export function computeAttackMetrics(
     averageProposalsPerActiveDay: Math.round(averageProposalsPerActiveDay * 10) / 10,
     currentPaceProposalsPerDay: Math.round(currentPaceProposalsPerDay * 10) / 10,
     projected30DayProposals,
+    outboundDensityPerActiveDay,
+    currentPaceOutboundPerDay,
+    projected30DayOutbound,
+    cadenceUnit,
+    isMonthlyAggregate,
     weeklyCohorts,
     topObjections,
     sampleRoles,

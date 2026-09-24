@@ -2376,32 +2376,79 @@ Enterprise Cloud & AI Solutions Architect\`
     }
 
     // Helper: Normalize date in browser
-    function clientNormalizeDate(dateVal) {
-      if (!dateVal) return null;
-      const num = Number(dateVal);
-      if (!isNaN(num) && num >= 30000 && num <= 65000) {
-        const excelEpoch = new Date(Date.UTC(1899, 11, 30));
-        const jsDate = new Date(excelEpoch.getTime() + num * 86400000);
-        if (!isNaN(jsDate.getTime())) return jsDate.toISOString().split('T')[0];
+    function clientNormalizeDate(dateVal, sheetContext) {
+      if (dateVal === null || dateVal === undefined || dateVal === '') return null;
+
+      // 1. Date object (native Date or SheetJS parsed)
+      if (dateVal instanceof Date || (typeof dateVal === 'object' && typeof dateVal.getTime === 'function')) {
+        if (!isNaN(dateVal.getTime())) {
+          const y = dateVal.getFullYear();
+          const m = String(dateVal.getMonth() + 1).padStart(2, '0');
+          const d = String(dateVal.getDate()).padStart(2, '0');
+          return y + '-' + m + '-' + d;
+        }
       }
+
+      // 2. Numeric / Excel serial timestamp or day-of-month
+      const num = typeof dateVal === 'number'
+        ? dateVal
+        : (typeof dateVal === 'string' && /^[0-9]+(\.[0-9]+)?$/.test(dateVal.trim()) ? Number(dateVal.trim()) : NaN);
+
+      if (!isNaN(num)) {
+        if (num >= 30000 && num <= 65000) {
+          const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+          const jsDate = new Date(excelEpoch.getTime() + Math.floor(num) * 86400000);
+          if (!isNaN(jsDate.getTime())) return jsDate.toISOString().split('T')[0];
+        }
+        if (num >= 1 && num <= 31) {
+          const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+          const sLower = String(sheetContext || '').toLowerCase();
+          let mIdx = monthNames.findIndex(m => sLower.includes(m));
+          if (mIdx === -1) mIdx = 8; // Default to September
+          const yrMatch = sLower.match(/\b(202[0-9])\b/);
+          const yr = yrMatch ? yrMatch[1] : '2026';
+          return yr + '-' + String(mIdx + 1).padStart(2, '0') + '-' + String(Math.floor(num)).padStart(2, '0');
+        }
+      }
+
       const str = String(dateVal).trim();
       if (!str) return null;
       if (str.length === 10 && str.charAt(4) === '-' && str.charAt(7) === '-') return str;
-      if (str.includes('/')) {
-        const parts = str.split('/');
-        if (parts.length === 3) {
-          const p1 = parseInt(parts[0], 10);
-          const p2 = parseInt(parts[1], 10);
-          const y = parseInt(parts[2], 10);
-          if (!isNaN(p1) && !isNaN(p2) && !isNaN(y) && y >= 2000 && y <= 2050) {
-            let day = p1;
-            let month = p2;
-            if (p2 > 12 && p1 <= 12) { month = p1; day = p2; }
-            return y + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+
+      // Delimited with /, -, or .
+      const delims = ['/', '-', '.'];
+      for (let i = 0; i < delims.length; i++) {
+        const delim = delims[i];
+        if (str.includes(delim)) {
+          const parts = str.split(delim);
+          if (parts.length === 3) {
+            const p1 = parseInt(parts[0], 10);
+            const p2 = parseInt(parts[1], 10);
+            const y = parseInt(parts[2], 10);
+            if (!isNaN(p1) && !isNaN(p2) && !isNaN(y) && y >= 2000 && y <= 2050) {
+              let day = p1;
+              let month = p2;
+              if (p2 > 12 && p1 <= 12) { month = p1; day = p2; }
+              return y + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+            }
           }
         }
       }
+
+      // D-Mon-YYYY or D-Mon (e.g. 9-Sep-2026, 9-Sep)
       const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+      const rawClean = str.split(' ').join('-').split('/').join('-').split('.').join('-');
+      const words = rawClean.split('-').filter(Boolean);
+      if (words.length >= 2) {
+        const dCandidate = parseInt(words[0], 10);
+        const mCandidate = words[1].toLowerCase();
+        const mIdx = monthNames.findIndex(m => mCandidate.startsWith(m));
+        if (!isNaN(dCandidate) && dCandidate >= 1 && dCandidate <= 31 && mIdx >= 0) {
+          const yr = (words.length >= 3 && parseInt(words[2], 10) >= 2000) ? words[2] : '2026';
+          return yr + '-' + String(mIdx + 1).padStart(2, '0') + '-' + String(dCandidate).padStart(2, '0');
+        }
+      }
+
       const lower = str.toLowerCase();
       const mIdx = monthNames.findIndex(m => lower === m || lower.startsWith(m));
       if (mIdx >= 0 && str.length <= 15) {
@@ -2409,10 +2456,15 @@ Enterprise Cloud & AI Solutions Architect\`
         const yr = yMatch ? yMatch[1] : '2026';
         return yr + '-' + String(mIdx + 1).padStart(2, '0') + '-15';
       }
+
       const parsed = new Date(str);
       if (!isNaN(parsed.getTime())) {
         const y = parsed.getFullYear();
-        if (y >= 2000 && y <= 2050) return parsed.toISOString().split('T')[0];
+        if (y >= 2000 && y <= 2050) {
+          const m = String(parsed.getMonth() + 1).padStart(2, '0');
+          const d = String(parsed.getDate()).padStart(2, '0');
+          return y + '-' + m + '-' + d;
+        }
       }
       return null;
     }
@@ -2582,7 +2634,7 @@ Enterprise Cloud & AI Solutions Architect\`
           const text = new TextDecoder().decode(arrayBuf);
           wb = window.XLSX.read(text, { type: 'string' });
         } else {
-          wb = window.XLSX.read(new Uint8Array(arrayBuf), { type: 'array' });
+          wb = window.XLSX.read(new Uint8Array(arrayBuf), { type: 'array', cellDates: true });
         }
 
         wb.SheetNames.forEach(sheetName => {
@@ -2732,7 +2784,9 @@ Enterprise Cloud & AI Solutions Architect\`
 
             // Extract Proposal Row (must have Date AND either a Job or URL; filters out empty template rows)
             if (jobCol >= 0 || urlCol >= 0) {
-              const dVal = String(pDateCol >= 0 ? row[pDateCol] || '' : '').trim();
+              const rawD = pDateCol >= 0 ? row[pDateCol] : '';
+              const normD = clientNormalizeDate(rawD, sheetName);
+              const dVal = normD || String(rawD || '').trim();
               const jVal = String(jobCol >= 0 ? row[jobCol] || '' : '').trim();
               const uVal = String(urlCol >= 0 ? row[urlCol] || '' : '').trim();
 
@@ -2756,7 +2810,9 @@ Enterprise Cloud & AI Solutions Architect\`
 
             // Extract Call Row (must have Date AND Lead Name)
             if (nameCol >= 0 && nameCol < row.length) {
-              const cdVal = String(cDateCol >= 0 ? row[cDateCol] || '' : '').trim();
+              const rawCD = cDateCol >= 0 ? row[cDateCol] : '';
+              const normCD = clientNormalizeDate(rawCD, sheetName);
+              const cdVal = normCD || String(rawCD || '').trim();
               const nVal = String(row[nameCol] || '').trim();
 
               const isSummaryCall = ['total', 'rate', 'sum', 'average', 'conversion'].some(kw => cdVal.toLowerCase().includes(kw) || nVal.toLowerCase().includes(kw));
@@ -2775,7 +2831,9 @@ Enterprise Cloud & AI Solutions Architect\`
 
             // Extract Social Selling Row
             if (hasSocialCols && pDateCol >= 0) {
-              const sdVal = String(row[pDateCol] || '').trim();
+              const rawSD = pDateCol >= 0 ? row[pDateCol] : '';
+              const normSD = clientNormalizeDate(rawSD, sheetName);
+              const sdVal = normSD || String(rawSD || '').trim();
               const isSummarySocial = ['total', 'rate', 'sum', 'average', 'conversion'].some(kw => sdVal.toLowerCase().includes(kw));
               if (sdVal && !isSummarySocial) {
                 const connVal = parseCountOrBool(connCol >= 0 ? row[connCol] : 0);
@@ -2969,9 +3027,14 @@ Enterprise Cloud & AI Solutions Architect\`
       }
 
       guaranteeConf.textContent = confPercent !== null ? (confPercent + '% model confidence') : '';
-      document.getElementById('attack-res-window').textContent = (windowInfo.startDate || '--') + ' to ' + (windowInfo.endDate || '--');
-      document.getElementById('attack-res-activedays').textContent = (m.activeDaysCount || 0) + ' / ' + (m.totalDaysInWindow || 30) + ' days';
-      document.getElementById('attack-res-pace').textContent = (m.currentPaceProposalsPerDay || 0) + ' /day';
+      document.getElementById('attack-res-activedays').textContent = m.isMonthlyAggregate
+        ? '1 month rollup (~20 active days)'
+        : (m.activeDaysCount || 0) + ' / ' + (m.totalDaysInWindow || 30) + ' days';
+      const paceUnit = m.cadenceUnit || (m.focusStrategy === 'social_selling' ? 'outreach' : (m.focusStrategy === 'sales_crm' ? 'calls' : (m.focusStrategy === 'omni' ? 'actions' : 'proposals')));
+      const paceVal = (m.currentPaceOutboundPerDay !== undefined && m.currentPaceOutboundPerDay > 0)
+        ? m.currentPaceOutboundPerDay
+        : (m.currentPaceProposalsPerDay || 0);
+      document.getElementById('attack-res-pace').textContent = paceVal + ' ' + paceUnit + '/day';
 
       // 1b. Strategy & Channel Activity Badges
       const stratBadge = document.getElementById('res-strategy-badge');
@@ -3225,10 +3288,24 @@ Enterprise Cloud & AI Solutions Architect\`
       });
 
       // 6. Cadence Metrics
-      document.getElementById('cadence-active-days').textContent = (m.activeDaysCount || 0) + ' / ' + (m.totalDaysInWindow || 30) + ' days';
-      document.getElementById('cadence-dormant-days').textContent = (m.zeroActivityDaysCount || 0) + ' dormant days';
-      document.getElementById('cadence-density').textContent = (m.averageProposalsPerActiveDay || 0) + ' proposals / active day';
-      document.getElementById('cadence-projected').textContent = (m.projected30DayProposals || 0) + ' total proposals projected';
+      if (m.isMonthlyAggregate) {
+        document.getElementById('cadence-active-days').textContent = '1 month rollup (~20 active days)';
+        document.getElementById('cadence-dormant-days').textContent = '0 dormant weeks (monthly)';
+      } else {
+        document.getElementById('cadence-active-days').textContent = (m.activeDaysCount || 0) + ' / ' + (m.totalDaysInWindow || 30) + ' days';
+        document.getElementById('cadence-dormant-days').textContent = (m.zeroActivityDaysCount || 0) + ' dormant days';
+      }
+
+      const unit = m.cadenceUnit || (m.focusStrategy === 'social_selling' ? 'outreach' : (m.focusStrategy === 'sales_crm' ? 'calls' : (m.focusStrategy === 'omni' ? 'actions' : 'proposals')));
+      const densityVal = (m.outboundDensityPerActiveDay !== undefined && m.outboundDensityPerActiveDay > 0)
+        ? m.outboundDensityPerActiveDay
+        : (m.averageProposalsPerActiveDay || 0);
+      const projectedVal = (m.projected30DayOutbound !== undefined && m.projected30DayOutbound > 0)
+        ? m.projected30DayOutbound
+        : (m.projected30DayProposals || 0);
+
+      document.getElementById('cadence-density').textContent = densityVal + ' ' + unit + ' / ' + (m.isMonthlyAggregate ? 'sprint day' : 'active day');
+      document.getElementById('cadence-projected').textContent = projectedVal + ' total ' + unit + ' projected';
 
       // 7. Objections & Sample Roles
       const objectionsList = document.getElementById('objections-list');
