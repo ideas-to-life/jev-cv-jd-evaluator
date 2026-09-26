@@ -230,7 +230,38 @@ export function getHtmlDashboard(): string {
               <span id="jd-stats" class="text-xs text-slate-400 font-mono">0 words</span>
             </div>
 
-            <div id="jd-dropzone" class="border-2 border-dashed border-slate-700 hover:border-blue-500/60 rounded-xl p-4 text-center cursor-pointer transition bg-slate-900/50 mb-3 group">
+            <!-- Mode Switcher & Quick Actions -->
+            <div class="flex items-center justify-between bg-slate-900/60 p-1.5 rounded-xl border border-slate-700/60 mb-3 gap-2 flex-wrap">
+              <div class="flex items-center bg-slate-950/70 p-0.5 rounded-lg border border-slate-800/80 text-xs">
+                <button type="button" id="jd-mode-paste-btn" class="px-2.5 py-1 rounded-md font-semibold transition flex items-center gap-1.5 bg-blue-600 text-white shadow-sm">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  Paste Text
+                </button>
+                <button type="button" id="jd-mode-file-btn" class="px-2.5 py-1 rounded-md font-semibold transition flex items-center gap-1.5 text-slate-400 hover:text-slate-200">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                  Upload File
+                </button>
+              </div>
+
+              <div class="flex items-center gap-1.5 ml-auto">
+                <button type="button" id="jd-paste-clip-btn" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium border border-slate-700/80 transition flex items-center gap-1 shadow-sm" title="Paste text directly from clipboard">
+                  <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                  </svg>
+                  <span>Paste Clipboard</span>
+                </button>
+                <button type="button" id="jd-clear-btn" class="px-2 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-rose-300 text-xs font-medium border border-slate-700/60 transition" title="Clear Job Description">
+                  ✕ Clear
+                </button>
+              </div>
+            </div>
+
+            <!-- Upload Dropzone (hidden in Paste mode) -->
+            <div id="jd-dropzone" class="border-2 border-dashed border-slate-700 hover:border-blue-500/60 rounded-xl p-4 text-center cursor-pointer transition bg-slate-900/50 mb-3 group hidden">
               <input type="file" id="jd-file-input" class="hidden" accept=".md,.markdown,.txt,.docx">
               <div class="flex flex-col items-center justify-center gap-1.5 pointer-events-none">
                 <svg class="w-6 h-6 text-slate-400 group-hover:text-blue-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -241,7 +272,7 @@ export function getHtmlDashboard(): string {
               </div>
             </div>
 
-            <textarea id="jd-text" rows="10" placeholder="Paste the target job description requirements, responsibilities, and qualifications..." class="w-full flex-1 bg-slate-900/90 border border-slate-700 rounded-xl p-3.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-sans leading-relaxed resize-none"></textarea>
+            <textarea id="jd-text" rows="11" placeholder="Paste the target job description requirements, responsibilities, and qualifications (or click Upload File to browse)..." class="w-full flex-1 bg-slate-900/90 border border-slate-700 rounded-xl p-3.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-sans leading-relaxed resize-none"></textarea>
           </div>
 
           <!-- Candidate CV Input -->
@@ -254,6 +285,37 @@ export function getHtmlDashboard(): string {
               <span id="cv-stats" class="text-xs text-slate-400 font-mono">0 words</span>
             </div>
 
+            <!-- Mode Switcher & Quick Actions -->
+            <div class="flex items-center justify-between bg-slate-900/60 p-1.5 rounded-xl border border-slate-700/60 mb-3 gap-2 flex-wrap">
+              <div class="flex items-center bg-slate-950/70 p-0.5 rounded-lg border border-slate-800/80 text-xs">
+                <button type="button" id="cv-mode-paste-btn" class="px-2.5 py-1 rounded-md font-semibold transition flex items-center gap-1.5 text-slate-400 hover:text-slate-200">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  Paste Text
+                </button>
+                <button type="button" id="cv-mode-file-btn" class="px-2.5 py-1 rounded-md font-semibold transition flex items-center gap-1.5 bg-emerald-600 text-white shadow-sm">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                  Upload File
+                </button>
+              </div>
+
+              <div class="flex items-center gap-1.5 ml-auto">
+                <button type="button" id="cv-paste-clip-btn" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium border border-slate-700/80 transition flex items-center gap-1 shadow-sm" title="Paste text directly from clipboard">
+                  <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                  </svg>
+                  <span>Paste Clipboard</span>
+                </button>
+                <button type="button" id="cv-clear-btn" class="px-2 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-rose-300 text-xs font-medium border border-slate-700/60 transition" title="Clear Candidate CV">
+                  ✕ Clear
+                </button>
+              </div>
+            </div>
+
+            <!-- Upload Dropzone (visible in File mode) -->
             <div id="cv-dropzone" class="border-2 border-dashed border-slate-700 hover:border-emerald-500/60 rounded-xl p-4 text-center cursor-pointer transition bg-slate-900/50 mb-3 group">
               <input type="file" id="cv-file-input" class="hidden" accept=".md,.markdown,.txt,.docx">
               <div class="flex flex-col items-center justify-center gap-1.5 pointer-events-none">
@@ -265,7 +327,7 @@ export function getHtmlDashboard(): string {
               </div>
             </div>
 
-            <textarea id="cv-text" rows="10" placeholder="Paste your candidate CV, resume achievements, technical capabilities, and experience..." class="w-full flex-1 bg-slate-900/90 border border-slate-700 rounded-xl p-3.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-sans leading-relaxed resize-none"></textarea>
+            <textarea id="cv-text" rows="6" placeholder="Paste your candidate CV, resume achievements, technical capabilities, and experience (or upload a file above)..." class="w-full flex-1 bg-slate-900/90 border border-slate-700 rounded-xl p-3.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-sans leading-relaxed resize-none"></textarea>
           </div>
 
         </div>
@@ -485,7 +547,38 @@ export function getHtmlDashboard(): string {
               <span id="upwork-job-stats" class="text-xs text-slate-400 font-mono">0 words</span>
             </div>
 
-            <div id="upwork-job-dropzone" class="border-2 border-dashed border-slate-700 hover:border-blue-500/60 rounded-xl p-4 text-center cursor-pointer transition bg-slate-900/50 mb-3 group">
+            <!-- Mode Switcher & Quick Actions -->
+            <div class="flex items-center justify-between bg-slate-900/60 p-1.5 rounded-xl border border-slate-700/60 mb-3 gap-2 flex-wrap">
+              <div class="flex items-center bg-slate-950/70 p-0.5 rounded-lg border border-slate-800/80 text-xs">
+                <button type="button" id="upwork-job-mode-paste-btn" class="px-2.5 py-1 rounded-md font-semibold transition flex items-center gap-1.5 bg-blue-600 text-white shadow-sm">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  Paste Text
+                </button>
+                <button type="button" id="upwork-job-mode-file-btn" class="px-2.5 py-1 rounded-md font-semibold transition flex items-center gap-1.5 text-slate-400 hover:text-slate-200">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                  Upload File
+                </button>
+              </div>
+
+              <div class="flex items-center gap-1.5 ml-auto">
+                <button type="button" id="upwork-job-paste-clip-btn" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium border border-slate-700/80 transition flex items-center gap-1 shadow-sm" title="Paste client job post directly from clipboard">
+                  <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                  </svg>
+                  <span>Paste Clipboard</span>
+                </button>
+                <button type="button" id="upwork-job-clear-btn" class="px-2 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-rose-300 text-xs font-medium border border-slate-700/60 transition" title="Clear Client Job Post">
+                  ✕ Clear
+                </button>
+              </div>
+            </div>
+
+            <!-- Upload Dropzone (hidden in Paste mode) -->
+            <div id="upwork-job-dropzone" class="border-2 border-dashed border-slate-700 hover:border-blue-500/60 rounded-xl p-4 text-center cursor-pointer transition bg-slate-900/50 mb-3 group hidden">
               <input type="file" id="upwork-job-file-input" class="hidden" accept=".md,.markdown,.txt,.docx">
               <div class="flex flex-col items-center justify-center gap-1.5 pointer-events-none">
                 <svg class="w-6 h-6 text-slate-400 group-hover:text-blue-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -496,7 +589,7 @@ export function getHtmlDashboard(): string {
               </div>
             </div>
 
-            <textarea id="upwork-job-text" rows="10" placeholder="Paste the Upwork client's job title, description, requirements, budget, and screening questions..." class="w-full flex-1 bg-slate-900/90 border border-slate-700 rounded-xl p-3.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-sans leading-relaxed resize-none"></textarea>
+            <textarea id="upwork-job-text" rows="11" placeholder="Paste the Upwork client's job title, description, requirements, budget, and screening questions (or click Upload File to browse)..." class="w-full flex-1 bg-slate-900/90 border border-slate-700 rounded-xl p-3.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-sans leading-relaxed resize-none"></textarea>
           </div>
 
           <!-- Proposal Draft Input -->
@@ -509,7 +602,38 @@ export function getHtmlDashboard(): string {
               <span id="upwork-prop-stats" class="text-xs text-slate-400 font-mono">0 words</span>
             </div>
 
-            <div id="upwork-prop-dropzone" class="border-2 border-dashed border-slate-700 hover:border-emerald-500/60 rounded-xl p-4 text-center cursor-pointer transition bg-slate-900/50 mb-3 group">
+            <!-- Mode Switcher & Quick Actions -->
+            <div class="flex items-center justify-between bg-slate-900/60 p-1.5 rounded-xl border border-slate-700/60 mb-3 gap-2 flex-wrap">
+              <div class="flex items-center bg-slate-950/70 p-0.5 rounded-lg border border-slate-800/80 text-xs">
+                <button type="button" id="upwork-prop-mode-paste-btn" class="px-2.5 py-1 rounded-md font-semibold transition flex items-center gap-1.5 bg-emerald-600 text-white shadow-sm">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  Paste Text
+                </button>
+                <button type="button" id="upwork-prop-mode-file-btn" class="px-2.5 py-1 rounded-md font-semibold transition flex items-center gap-1.5 text-slate-400 hover:text-slate-200">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                  Upload File
+                </button>
+              </div>
+
+              <div class="flex items-center gap-1.5 ml-auto">
+                <button type="button" id="upwork-prop-paste-clip-btn" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium border border-slate-700/80 transition flex items-center gap-1 shadow-sm" title="Paste proposal draft directly from clipboard">
+                  <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                  </svg>
+                  <span>Paste Clipboard</span>
+                </button>
+                <button type="button" id="upwork-prop-clear-btn" class="px-2 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-rose-300 text-xs font-medium border border-slate-700/60 transition" title="Clear Proposal Draft">
+                  ✕ Clear
+                </button>
+              </div>
+            </div>
+
+            <!-- Upload Dropzone (hidden in Paste mode) -->
+            <div id="upwork-prop-dropzone" class="border-2 border-dashed border-slate-700 hover:border-emerald-500/60 rounded-xl p-4 text-center cursor-pointer transition bg-slate-900/50 mb-3 group hidden">
               <input type="file" id="upwork-prop-file-input" class="hidden" accept=".md,.markdown,.txt,.docx">
               <div class="flex flex-col items-center justify-center gap-1.5 pointer-events-none">
                 <svg class="w-6 h-6 text-slate-400 group-hover:text-emerald-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -520,7 +644,7 @@ export function getHtmlDashboard(): string {
               </div>
             </div>
 
-            <textarea id="upwork-prop-text" rows="10" placeholder="Paste your proposal letter draft, opening hook, proof of work, answers, and call-to-action..." class="w-full flex-1 bg-slate-900/90 border border-slate-700 rounded-xl p-3.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-sans leading-relaxed resize-none"></textarea>
+            <textarea id="upwork-prop-text" rows="11" placeholder="Paste your proposal letter draft, opening hook, proof of work, answers, and call-to-action (or click Upload File to browse)..." class="w-full flex-1 bg-slate-900/90 border border-slate-700 rounded-xl p-3.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-sans leading-relaxed resize-none"></textarea>
           </div>
 
         </div>
@@ -1882,6 +2006,135 @@ Enterprise Cloud & AI Solutions Architect\`
       }
     }
 
+    // Helper: Setup Card with Paste & File Mode Toggles + Clipboard Paste + Drag/Drop
+    function setupInputCard(opts) {
+      const pasteBtn = opts.pasteBtn;
+      const fileBtn = opts.fileBtn;
+      const pasteClipBtn = opts.pasteClipBtn;
+      const clearBtn = opts.clearBtn;
+      const dropzone = opts.dropzone;
+      const fileInput = opts.fileInput;
+      const textarea = opts.textarea;
+      const statsEl = opts.statsEl;
+      const fileNameEl = opts.fileNameEl;
+      const accentColor = opts.accentColor || 'blue';
+      const activeBg = accentColor === 'emerald' ? 'bg-emerald-600' : 'bg-blue-600';
+      const activeRing = accentColor === 'emerald' ? 'ring-emerald-400' : 'ring-blue-400';
+
+      let currentMode = opts.defaultMode || 'paste';
+
+      function setMode(mode) {
+        currentMode = mode;
+        if (mode === 'paste') {
+          if (pasteBtn) {
+            pasteBtn.className = 'px-2.5 py-1 rounded-md font-semibold transition flex items-center gap-1.5 ' + activeBg + ' text-white shadow-sm';
+          }
+          if (fileBtn) {
+            fileBtn.className = 'px-2.5 py-1 rounded-md font-semibold transition flex items-center gap-1.5 text-slate-400 hover:text-slate-200';
+          }
+          if (dropzone) dropzone.classList.add('hidden');
+          if (textarea) textarea.rows = 11;
+        } else {
+          if (fileBtn) {
+            fileBtn.className = 'px-2.5 py-1 rounded-md font-semibold transition flex items-center gap-1.5 ' + activeBg + ' text-white shadow-sm';
+          }
+          if (pasteBtn) {
+            pasteBtn.className = 'px-2.5 py-1 rounded-md font-semibold transition flex items-center gap-1.5 text-slate-400 hover:text-slate-200';
+          }
+          if (dropzone) dropzone.classList.remove('hidden');
+          if (textarea) textarea.rows = 6;
+        }
+      }
+
+      setMode(currentMode);
+
+      if (pasteBtn) pasteBtn.addEventListener('click', () => setMode('paste'));
+      if (fileBtn) fileBtn.addEventListener('click', () => setMode('file'));
+
+      if (pasteClipBtn) {
+        pasteClipBtn.addEventListener('click', async () => {
+          try {
+            const clipText = await navigator.clipboard.readText();
+            if (!clipText || !clipText.trim()) {
+              alert('Clipboard is empty or does not contain readable text.');
+              return;
+            }
+            textarea.value = clipText;
+            updateWordStats(textarea, statsEl);
+            if (currentMode !== 'paste') setMode('paste');
+            textarea.focus();
+
+            const textSpan = pasteClipBtn.querySelector('span');
+            if (textSpan) {
+              const orig = textSpan.textContent;
+              textSpan.textContent = '✓ Pasted!';
+              pasteClipBtn.classList.add('text-emerald-400');
+              setTimeout(() => {
+                textSpan.textContent = orig;
+                pasteClipBtn.classList.remove('text-emerald-400');
+              }, 1600);
+            }
+          } catch (err) {
+            textarea.focus();
+            alert('Clipboard read was blocked by browser permissions. Please click inside the box and press ⌘+V or Ctrl+V to paste.');
+          }
+        });
+      }
+
+      if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+          textarea.value = '';
+          if (fileInput) fileInput.value = '';
+          if (fileNameEl) {
+            fileNameEl.textContent = '';
+            fileNameEl.classList.add('hidden');
+          }
+          updateWordStats(textarea, statsEl);
+        });
+      }
+
+      if (dropzone && fileInput) {
+        setupDropzone(dropzone, fileInput, textarea, statsEl, fileNameEl);
+      }
+
+      if (textarea) {
+        ['dragenter', 'dragover'].forEach(eventName => {
+          textarea.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            textarea.classList.add('ring-2', activeRing);
+          });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+          textarea.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            textarea.classList.remove('ring-2', activeRing);
+          });
+        });
+
+        textarea.addEventListener('drop', async (e) => {
+          const files = e.dataTransfer.files;
+          if (files && files.length > 0) {
+            try {
+              const text = await extractTextFromFile(files[0]);
+              textarea.value = text;
+              if (fileNameEl) {
+                fileNameEl.textContent = '📄 ' + files[0].name;
+                fileNameEl.classList.remove('hidden');
+              }
+              updateWordStats(textarea, statsEl);
+            } catch (err) {
+              alert('Could not parse file: ' + err.message);
+            }
+          }
+        });
+      }
+
+      return { setMode };
+    }
+
     function getScoreColor(normalizedScore5) {
       if (normalizedScore5 >= 3.8) return { bar: 'bg-emerald-500', text: 'text-emerald-400' };
       if (normalizedScore5 >= 2.6) return { bar: 'bg-amber-500', text: 'text-amber-400' };
@@ -1901,6 +2154,14 @@ Enterprise Cloud & AI Solutions Architect\`
     const cvFileInput = document.getElementById('cv-file-input');
     const jdFileName = document.getElementById('jd-file-name');
     const cvFileName = document.getElementById('cv-file-name');
+    const jdModePasteBtn = document.getElementById('jd-mode-paste-btn');
+    const jdModeFileBtn = document.getElementById('jd-mode-file-btn');
+    const jdPasteClipBtn = document.getElementById('jd-paste-clip-btn');
+    const jdClearBtn = document.getElementById('jd-clear-btn');
+    const cvModePasteBtn = document.getElementById('cv-mode-paste-btn');
+    const cvModeFileBtn = document.getElementById('cv-mode-file-btn');
+    const cvPasteClipBtn = document.getElementById('cv-paste-clip-btn');
+    const cvClearBtn = document.getElementById('cv-clear-btn');
     const loadSampleCvBtn = document.getElementById('load-sample-cv-btn');
     const evaluateCvBtn = document.getElementById('evaluate-cv-btn');
     const evaluateCvBtnText = document.getElementById('evaluate-cv-btn-text');
@@ -1913,10 +2174,37 @@ Enterprise Cloud & AI Solutions Architect\`
     jdText.addEventListener('input', () => updateWordStats(jdText, jdStats));
     cvText.addEventListener('input', () => updateWordStats(cvText, cvStats));
 
-    setupDropzone(jdDropzone, jdFileInput, jdText, jdStats, jdFileName);
-    setupDropzone(cvDropzone, cvFileInput, cvText, cvStats, cvFileName);
+    const jdCard = setupInputCard({
+      pasteBtn: jdModePasteBtn,
+      fileBtn: jdModeFileBtn,
+      pasteClipBtn: jdPasteClipBtn,
+      clearBtn: jdClearBtn,
+      dropzone: jdDropzone,
+      fileInput: jdFileInput,
+      textarea: jdText,
+      statsEl: jdStats,
+      fileNameEl: jdFileName,
+      accentColor: 'blue',
+      defaultMode: 'paste'
+    });
+
+    const cvCard = setupInputCard({
+      pasteBtn: cvModePasteBtn,
+      fileBtn: cvModeFileBtn,
+      pasteClipBtn: cvPasteClipBtn,
+      clearBtn: cvClearBtn,
+      dropzone: cvDropzone,
+      fileInput: cvFileInput,
+      textarea: cvText,
+      statsEl: cvStats,
+      fileNameEl: cvFileName,
+      accentColor: 'emerald',
+      defaultMode: 'file'
+    });
 
     loadSampleCvBtn.addEventListener('click', () => {
+      jdCard.setMode('paste');
+      cvCard.setMode('paste');
       jdText.value = sampleCV_JD.jd;
       cvText.value = sampleCV_JD.cv;
       jdFileName.classList.add('hidden');
@@ -1929,6 +2217,8 @@ Enterprise Cloud & AI Solutions Architect\`
     clearCvBtn.addEventListener('click', () => {
       jdText.value = '';
       cvText.value = '';
+      if (jdFileInput) jdFileInput.value = '';
+      if (cvFileInput) cvFileInput.value = '';
       jdFileName.classList.add('hidden');
       cvFileName.classList.add('hidden');
       updateWordStats(jdText, jdStats);
@@ -2077,6 +2367,14 @@ Enterprise Cloud & AI Solutions Architect\`
     const upworkPropFileInput = document.getElementById('upwork-prop-file-input');
     const upworkJobFileName = document.getElementById('upwork-job-file-name');
     const upworkPropFileName = document.getElementById('upwork-prop-file-name');
+    const upworkJobModePasteBtn = document.getElementById('upwork-job-mode-paste-btn');
+    const upworkJobModeFileBtn = document.getElementById('upwork-job-mode-file-btn');
+    const upworkJobPasteClipBtn = document.getElementById('upwork-job-paste-clip-btn');
+    const upworkJobClearBtn = document.getElementById('upwork-job-clear-btn');
+    const upworkPropModePasteBtn = document.getElementById('upwork-prop-mode-paste-btn');
+    const upworkPropModeFileBtn = document.getElementById('upwork-prop-mode-file-btn');
+    const upworkPropPasteClipBtn = document.getElementById('upwork-prop-paste-clip-btn');
+    const upworkPropClearBtn = document.getElementById('upwork-prop-clear-btn');
     const loadSampleUpworkBtn = document.getElementById('load-sample-upwork-btn');
     const evaluateUpworkBtn = document.getElementById('evaluate-upwork-btn');
     const evaluateUpworkBtnText = document.getElementById('evaluate-upwork-btn-text');
@@ -2089,10 +2387,37 @@ Enterprise Cloud & AI Solutions Architect\`
     upworkJobText.addEventListener('input', () => updateWordStats(upworkJobText, upworkJobStats));
     upworkPropText.addEventListener('input', () => updateWordStats(upworkPropText, upworkPropStats));
 
-    setupDropzone(upworkJobDropzone, upworkJobFileInput, upworkJobText, upworkJobStats, upworkJobFileName);
-    setupDropzone(upworkPropDropzone, upworkPropFileInput, upworkPropText, upworkPropStats, upworkPropFileName);
+    const upworkJobCard = setupInputCard({
+      pasteBtn: upworkJobModePasteBtn,
+      fileBtn: upworkJobModeFileBtn,
+      pasteClipBtn: upworkJobPasteClipBtn,
+      clearBtn: upworkJobClearBtn,
+      dropzone: upworkJobDropzone,
+      fileInput: upworkJobFileInput,
+      textarea: upworkJobText,
+      statsEl: upworkJobStats,
+      fileNameEl: upworkJobFileName,
+      accentColor: 'blue',
+      defaultMode: 'paste'
+    });
+
+    const upworkPropCard = setupInputCard({
+      pasteBtn: upworkPropModePasteBtn,
+      fileBtn: upworkPropModeFileBtn,
+      pasteClipBtn: upworkPropPasteClipBtn,
+      clearBtn: upworkPropClearBtn,
+      dropzone: upworkPropDropzone,
+      fileInput: upworkPropFileInput,
+      textarea: upworkPropText,
+      statsEl: upworkPropStats,
+      fileNameEl: upworkPropFileName,
+      accentColor: 'emerald',
+      defaultMode: 'paste'
+    });
 
     loadSampleUpworkBtn.addEventListener('click', () => {
+      upworkJobCard.setMode('paste');
+      upworkPropCard.setMode('paste');
       upworkJobText.value = sampleUpwork.job;
       upworkPropText.value = sampleUpwork.proposal;
       upworkJobFileName.classList.add('hidden');
@@ -2105,6 +2430,8 @@ Enterprise Cloud & AI Solutions Architect\`
     clearUpworkBtn.addEventListener('click', () => {
       upworkJobText.value = '';
       upworkPropText.value = '';
+      if (upworkJobFileInput) upworkJobFileInput.value = '';
+      if (upworkPropFileInput) upworkPropFileInput.value = '';
       upworkJobFileName.classList.add('hidden');
       upworkPropFileName.classList.add('hidden');
       updateWordStats(upworkJobText, upworkJobStats);
